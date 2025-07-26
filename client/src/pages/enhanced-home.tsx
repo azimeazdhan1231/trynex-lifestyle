@@ -134,14 +134,18 @@ export default function EnhancedHomePage() {
 
             {/* Quick Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
-                <Zap className="w-5 h-5 mr-2" />
-                {language === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}
-              </Button>
-              <Button variant="outline" size="lg" className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg">
-                <Heart className="w-5 h-5 mr-2" />
-                {language === 'bn' ? 'কাস্টম ডিজাইন' : 'Custom Design'}
-              </Button>
+              <Link href="/products">
+                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 text-lg">
+                  <Zap className="w-5 h-5 mr-2" />
+                  {language === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}
+                </Button>
+              </Link>
+              <Link href="/custom-design">
+                <Button variant="outline" size="lg" className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg">
+                  <Heart className="w-5 h-5 mr-2" />
+                  {language === 'bn' ? 'কাস্টম ডিজাইন' : 'Custom Design'}
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
