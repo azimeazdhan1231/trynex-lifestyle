@@ -1,0 +1,84 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 14:31:00 UTC 2025
+
+  System load:  1.33              Temperature:           -273.1 C
+  Usage of /:   46.3% of 6.71GB   Processes:             115
+  Memory usage: 29%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 14:31:01 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ # Navigate to project directory
+cd trynex-lifestyle
+
+# Create a simple production server script that doesn't use Vite
+cat > production-server.js << 'EOF'
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Serve static files from client/dist if it exists
+if (require('fs').existsSync('./client/dist')) {
+  app.use(express.static('./client/dist'));
+}
+
+// Basic API endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Trynex Bengali E-commerce API is running!', 
+    timestamp: new Date().toISOString(),
+    database: 'Connected to local PostgreSQL'
+  });
+});
+
+// Basic products endpoint
+app.get('/api/products', (req, res) => {
+  res.json([
+    {
+      id: "1",
+      name: "Premium Love Mug",
+      nameBn: "প্রিমিয়াম ভালোবাসার মগ",
+      price: 550,
+      originalPrice: 750,
+      category: "Mugs",
+      categoryBn: "মগ",
+      image: "/api/placeholder/300/300",
+      description: "Beautiful ceramic mug perfect for expressing love",
+      descriptionBn: "ভালোবাসা প্রকাশের জন্য নিখুঁত সুন্দর সিরামিক মগ"
+    }
+  ]);
+curl http://localhost:5000/api/testme "trynex-simple"st`);on port ${PORT}`);.org/2000/svg">
+[PM2] Starting /home/ubuntu/trynex-lifestyle/production-server.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬──────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name             │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼──────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ trynex-simple    │ default     │ 1.0.0   │ fork    │ 27920    │ 0s     │ 0    │ online    │ 0%       │ 20.6mb   │ ubuntu   │ disabled │
+└────┴──────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+┌────┬──────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name             │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼──────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ trynex-simple    │ default     │ 1.0.0   │ fork    │ 27920    │ 0s     │ 0    │ online    │ 0%       │ 54.1mb   │ ubuntu   │ disabled │
+└────┴──────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+curl: (7) Failed to connect to localhost port 5000 after 0 ms: Couldn't connect to server
+ubuntu@ip-172-31-45-165:~/trynex-lifestyle$ 
