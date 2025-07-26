@@ -96,6 +96,17 @@ export interface IStorage {
 
 // Memory storage as fallback
 class MemoryStorage implements IStorage {
+  async verifyAdminPassword(username: string, password: string): Promise<boolean> {
+    console.log('Verifying admin password for:', username, 'password:', password);
+    const admin = await this.getAdminByUsername(username);
+    console.log('Found admin:', admin ? 'Yes' : 'No', admin?.password);
+    if (!admin) return false;
+    // Temporary: use plain text comparison for testing
+    const isValid = admin.password === password;
+    console.log('Password valid:', isValid);
+    return isValid;
+  }
+
   private products: Product[] = [
     {
       id: '1',
@@ -211,7 +222,7 @@ class MemoryStorage implements IStorage {
     {
       id: 'admin-1',
       username: 'admin',
-      password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // hashed 'admin123'
+      password: 'admin123', // temporary plain text for testing
       role: 'admin',
       isActive: true,
       createdAt: new Date(),
