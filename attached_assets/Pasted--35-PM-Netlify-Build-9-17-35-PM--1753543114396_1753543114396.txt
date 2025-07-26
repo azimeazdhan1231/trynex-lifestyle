@@ -1,0 +1,64 @@
+:35 PM: Netlify Build                                                 
+9:17:35 PM: ────────────────────────────────────────────────────────────────
+9:17:35 PM: ​
+9:17:35 PM: ❯ Version
+9:17:35 PM:   @netlify/build 34.3.0
+9:17:35 PM: ​
+9:17:35 PM: ❯ Flags
+9:17:35 PM:   accountId: 67fd8e39222fc12e01f366b4
+9:17:35 PM:   baseRelDir: true
+9:17:35 PM:   buildId: 6884f188cc6fb2e46b1cc4bf
+9:17:35 PM:   deployId: 6884f188cc6fb2e46b1cc4c1
+9:17:35 PM: ​
+9:17:35 PM: ❯ Current directory
+9:17:35 PM:   /opt/build/repo/client
+9:17:35 PM: ​
+9:17:35 PM: ❯ Config file
+9:17:35 PM:   /opt/build/repo/netlify.toml
+9:17:35 PM: ​
+9:17:35 PM: ❯ Context
+9:17:35 PM:   production
+9:17:35 PM: ​
+9:17:35 PM: ❯ Installing extensions
+9:17:35 PM:    - neon
+9:18:04 PM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+9:18:02 PM: ​
+9:18:02 PM: ❯ Loading extensions
+9:18:02 PM:    - neon
+9:18:03 PM: ​
+9:18:03 PM: build.command from netlify.toml                               
+9:18:03 PM: ────────────────────────────────────────────────────────────────
+9:18:03 PM: ​
+9:18:03 PM: $ npm run build
+9:18:04 PM: > rest-express@1.0.0 build
+9:18:04 PM: > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+9:18:04 PM: sh: 1: vite: not found
+9:18:04 PM: ​
+9:18:04 PM: "build.command" failed                                        
+9:18:04 PM: ────────────────────────────────────────────────────────────────
+9:18:04 PM: ​
+9:18:04 PM:   Error message
+9:18:04 PM:   Command failed with exit code 127: npm run build (https://ntl.fyi/exit-code-127)
+9:18:04 PM: ​
+9:18:04 PM:   Error location
+9:18:04 PM:   In build.command from netlify.toml:
+9:18:04 PM:   npm run build
+9:18:04 PM: ​
+9:18:04 PM:   Resolved config
+9:18:04 PM:   build:
+9:18:04 PM:     base: /opt/build/repo/client
+9:18:04 PM:     command: npm run build
+9:18:04 PM:     commandOrigin: config
+9:18:04 PM:     environment:
+9:18:04 PM:       - VITE_API_URL
+9:18:04 PM:       - VITE_BACKEND_URL
+9:18:04 PM:     publish: /opt/build/repo/client/client/dist
+9:18:04 PM:     publishOrigin: config
+9:18:04 PM:   redirects:
+9:18:04 PM:     - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+9:18:04 PM: Build failed due to a user error: Build script returned non-zero exit code: 2
+9:18:04 PM: Failing build: Failed to build site
+9:18:04 PM: Finished processing build request in 35.029s

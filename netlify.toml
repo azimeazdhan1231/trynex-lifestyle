@@ -1,7 +1,7 @@
 [build]
-  base = "client"
-  publish = "client/dist"
-  command = "npm run build"
+  base = "."
+  publish = "dist/public"
+  command = "npm install && vite build"
 
 [build.environment]
   VITE_API_URL = "http://16.170.250.199"
