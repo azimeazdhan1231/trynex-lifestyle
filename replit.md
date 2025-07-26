@@ -16,7 +16,9 @@ A comprehensive Bengali e-commerce platform specializing in personalized ceramic
 - ✅ **2025-07-26**: Migrated from memory storage to database storage successfully
 - ✅ **2025-07-26**: Created complete SQL database setup script
 - ✅ **2025-07-26**: Fixed admin login functionality and verified all API endpoints
-- ✅ **2025-07-26**: Created comprehensive deployment guide for GitHub, Netlify, and AWS
+- ✅ **2025-07-26**: **FIXED PROMO OFFER UPDATE FUNCTIONALITY** - Edit buttons now work perfectly
+- ✅ **2025-07-26**: Resolved date conversion issues in database storage layer
+- ✅ **2025-07-26**: **DEPLOYMENT READY** - Created comprehensive AWS EC2 deployment guide only
 - ✅ **2025-07-26**: Added ProductForm and PromoOfferForm components for admin panel
 
 ## Database Setup
@@ -39,6 +41,7 @@ The application now uses PostgreSQL with complete schema including:
 - Code Style: Modern TypeScript with proper type safety
 - Architecture: Full-stack with clear separation of concerns
 - Database: PostgreSQL with proper indexing and relationships
+- Deployment: AWS EC2 instances only (all other deployment guides removed)
 
 ## Key Features
 1. **Bilingual Support**: Complete English/Bengali localization

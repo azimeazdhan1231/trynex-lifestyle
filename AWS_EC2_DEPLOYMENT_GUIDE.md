@@ -1,58 +1,44 @@
-# AWS EC2 Deployment Guide for Trynex Lifestyle E-Commerce
+# AWS EC2 Deployment Guide - Trynex Bengali E-commerce Platform
 
-This guide provides step-by-step instructions to deploy your Bengali e-commerce application on AWS EC2.
+## Overview
+Complete guide to deploy your Bengali e-commerce platform on AWS EC2 with PostgreSQL database, SSL certificates, and production optimizations.
 
 ## Prerequisites
-
-Before starting, ensure you have:
-- AWS Account with appropriate permissions
+- AWS Account with billing enabled
 - Domain name (optional but recommended)
-- SSL certificate (optional but recommended for production)
+- Basic knowledge of SSH and Linux commands
 
-## Part 1: Setting Up AWS EC2 Instance
+## Step 1: Launch EC2 Instance
 
-### Step 1: Launch EC2 Instance
+### 1.1 Create EC2 Instance
+1. Go to AWS Console → EC2 → Launch Instance
+2. **Name**: `Trynex-Ecommerce-Server`
+3. **AMI**: Ubuntu Server 22.04 LTS (Free Tier eligible)
+4. **Instance Type**: `t2.medium` (minimum recommended for production)
+5. **Key Pair**: Create new key pair and download `.pem` file
+6. **Security Group**: Create with these rules:
+   - SSH (22) - Your IP only
+   - HTTP (80) - Anywhere (0.0.0.0/0)
+   - HTTPS (443) - Anywhere (0.0.0.0/0)
+   - Custom TCP (5000) - Anywhere (0.0.0.0/0) [temporary]
 
-1. **Login to AWS Console**
-   - Go to AWS Management Console
-   - Navigate to EC2 service
-   - Click "Launch Instance"
+### 1.2 Allocate Elastic IP
+1. Go to EC2 → Elastic IPs → Allocate Elastic IP
+2. Associate with your instance
+3. Note down the Elastic IP address
 
-2. **Configure Instance**
-   ```
-   Name: trynex-ecommerce-server
-   AMI: Ubuntu Server 22.04 LTS (Free tier eligible)
-   Instance Type: t2.micro (Free tier) or t3.small (Recommended for production)
-   Key Pair: Create new key pair (save the .pem file securely)
-   Security Group: Create new security group with these rules:
-   ```
+## Step 2: Connect and Setup Server
 
-3. **Security Group Configuration**
-   ```
-   Inbound Rules:
-   - SSH (Port 22): Your IP
-   - HTTP (Port 80): 0.0.0.0/0
-   - HTTPS (Port 443): 0.0.0.0/0
-   - Custom TCP (Port 5000): 0.0.0.0/0 (for API)
-   - Custom TCP (Port 3000): 0.0.0.0/0 (for frontend dev server, remove in production)
-   ```
-
-4. **Launch Instance**
-   - Review settings and launch
-   - Note down the Public IPv4 address
-
-### Step 2: Connect to Your Instance
-
+### 2.1 SSH Connection
 ```bash
-# Replace with your key file and public IP
-chmod 400 your-key-file.pem
-ssh -i "your-key-file.pem" ubuntu@your-public-ip
+# Make key file secure
+chmod 400 your-key.pem
+
+# Connect to instance
+ssh -i your-key.pem ubuntu@YOUR_ELASTIC_IP
 ```
 
-## Part 2: Server Setup and Configuration
-
-### Step 3: Install Required Software
-
+### 2.2 Update System and Install Dependencies
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -61,141 +47,153 @@ sudo apt update && sudo apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# Install PM2 (Process Manager)
-sudo npm install -g pm2
-
-# Install Nginx
-sudo apt install nginx -y
-
-# Install Git
-sudo apt install git -y
+# Install additional tools
+sudo apt install -y git nginx certbot python3-certbot-nginx pm2 postgresql postgresql-contrib
 
 # Verify installations
 node --version
 npm --version
-pm2 --version
 nginx -v
 ```
 
-### Step 4: Clone and Setup Your Application
+## Step 3: Setup PostgreSQL Database
 
+### 3.1 Configure PostgreSQL
 ```bash
-# Navigate to web directory
-cd /var/www
+# Switch to postgres user
+sudo -u postgres psql
 
-# Clone your repository (replace with your actual repo URL)
-sudo git clone https://github.com/yourusername/trynex-ecommerce.git
-sudo chown -R ubuntu:ubuntu trynex-ecommerce
+# Create database and user
+CREATE DATABASE trynex_db;
+CREATE USER trynex_user WITH ENCRYPTED PASSWORD 'your_secure_password_here';
+GRANT ALL PRIVILEGES ON DATABASE trynex_db TO trynex_user;
+ALTER USER trynex_user CREATEDB;
+\quit
+
+# Configure PostgreSQL for remote connections
+sudo nano /etc/postgresql/14/main/postgresql.conf
+# Find and uncomment: listen_addresses = '*'
+
+sudo nano /etc/postgresql/14/main/pg_hba.conf
+# Add: host all all 0.0.0.0/0 md5
+
+# Restart PostgreSQL
+sudo systemctl restart postgresql
+sudo systemctl enable postgresql
+```
+
+### 3.2 Test Database Connection
+```bash
+# Test local connection
+psql -h localhost -U trynex_user -d trynex_db
+# Enter password when prompted
+\quit
+```
+
+## Step 4: Deploy Application
+
+### 4.1 Clone and Setup Application
+```bash
+# Clone your repository (adjust URL as needed)
+git clone https://github.com/your-username/trynex-ecommerce.git
 cd trynex-ecommerce
 
 # Install dependencies
 npm install
 
-# Build the application
-npm run build
+# Install PM2 globally
+sudo npm install -g pm2
 ```
 
-### Step 5: Environment Configuration
-
+### 4.2 Configure Environment Variables
 ```bash
 # Create production environment file
-sudo nano .env
+nano .env.production
 
-# Add these environment variables (update with your actual values):
-```
-
-```env
+# Add these variables:
 NODE_ENV=production
 PORT=5000
-DATABASE_URL=postgresql://postgres.ickclyevpbgmppqizfov:your-password@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
-SESSION_SECRET=your-super-secret-session-key-here-change-this
-UPLOAD_DIR=/var/www/trynex-ecommerce/uploads
+DATABASE_URL=postgresql://trynex_user:your_secure_password_here@localhost:5432/trynex_db
+PGUSER=trynex_user
+PGPASSWORD=your_secure_password_here
+PGDATABASE=trynex_db
+PGHOST=localhost
+PGPORT=5432
 ```
 
+### 4.3 Setup Database Schema
 ```bash
-# Create uploads directory
-mkdir -p uploads
-chmod 755 uploads
-```
-
-## Part 3: Database Setup
-
-### Step 6: Prepare Database
-
-```bash
-# Push database schema to production
+# Run database setup
 npm run db:push
 
-# Populate sample data (optional)
+# Optional: Populate with sample data
 node populate-database.js
 ```
 
-## Part 4: Process Management with PM2
-
-### Step 7: Setup PM2 Configuration
-
+### 4.4 Build and Start Application
 ```bash
-# Create PM2 ecosystem file
-nano ecosystem.config.js
+# Build the application
+npm run build
+
+# Start with PM2
+pm2 start ecosystem.config.js --env production
+
+# Save PM2 configuration
+pm2 save
+pm2 startup
+# Follow the instructions provided by the startup command
 ```
 
-```javascript
+### 4.5 Create PM2 Ecosystem File
+```bash
+# Create ecosystem.config.js
+cat > ecosystem.config.js << 'EOF'
 module.exports = {
   apps: [{
-    name: 'trynex-api',
-    script: 'server/index.ts',
-    interpreter: 'npx',
-    interpreter_args: 'tsx',
+    name: 'trynex-ecommerce',
+    script: 'npm',
+    args: 'run dev',
+    cwd: '/home/ubuntu/trynex-ecommerce',
     instances: 1,
     autorestart: true,
     watch: false,
     max_memory_restart: '1G',
     env: {
+      NODE_ENV: 'development',
+      PORT: 5000
+    },
+    env_production: {
       NODE_ENV: 'production',
       PORT: 5000
-    }
+    },
+    error_file: '/home/ubuntu/.pm2/logs/trynex-error.log',
+    out_file: '/home/ubuntu/.pm2/logs/trynex-out.log',
+    log_file: '/home/ubuntu/.pm2/logs/trynex-combined.log'
   }]
 };
+EOF
 ```
 
+## Step 5: Configure Nginx Reverse Proxy
+
+### 5.1 Create Nginx Configuration
 ```bash
-# Start application with PM2
-pm2 start ecosystem.config.js
+# Create site configuration
+sudo nano /etc/nginx/sites-available/trynex
 
-# Enable PM2 startup
-pm2 startup
-sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
-
-# Save PM2 configuration
-pm2 save
-
-# Check application status
-pm2 status
-pm2 logs trynex-api
-```
-
-## Part 5: Nginx Configuration
-
-### Step 8: Configure Nginx as Reverse Proxy
-
-```bash
-# Create Nginx configuration
-sudo nano /etc/nginx/sites-available/trynex-ecommerce
-```
-
-```nginx
+# Add this configuration:
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;  # Replace with your domain or IP
-    
+    server_name YOUR_DOMAIN_OR_IP;
+
     # Serve static files
     location /uploads/ {
-        alias /var/www/trynex-ecommerce/uploads/;
-        expires 1y;
+        alias /home/ubuntu/trynex-ecommerce/uploads/;
+        expires 30d;
         add_header Cache-Control "public, immutable";
     }
-    
-    # API routes
+
+    # API and backend routes
     location /api/ {
         proxy_pass http://localhost:5000;
         proxy_http_version 1.1;
@@ -207,268 +205,325 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
     }
-    
-    # Frontend (if serving from same server)
+
+    # Frontend routes
     location / {
-        root /var/www/trynex-ecommerce/dist/public;
-        try_files $uri $uri/ /index.html;
-        
-        # Cache static assets
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 1y;
-            add_header Cache-Control "public, immutable";
-        }
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
     }
 }
-```
 
-```bash
 # Enable the site
-sudo ln -s /etc/nginx/sites-available/trynex-ecommerce /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/trynex /etc/nginx/sites-enabled/
 
-# Remove default site
-sudo rm /etc/nginx/sites-enabled/default
-
-# Test Nginx configuration
+# Test nginx configuration
 sudo nginx -t
 
-# Restart Nginx
+# Restart nginx
 sudo systemctl restart nginx
 sudo systemctl enable nginx
 ```
 
-## Part 6: SSL Certificate (Optional but Recommended)
+## Step 6: Setup SSL Certificate (Optional but Recommended)
 
-### Step 9: Install SSL with Let's Encrypt
+### 6.1 Configure Domain (if you have one)
+1. Point your domain's A record to your Elastic IP
+2. Wait for DNS propagation (5-30 minutes)
 
+### 6.2 Install SSL Certificate
 ```bash
-# Install Certbot
-sudo apt install snapd
-sudo snap install core; sudo snap refresh core
-sudo snap install --classic certbot
+# Install SSL certificate (replace with your domain)
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 
-# Create symbolic link
-sudo ln -s /snap/bin/certbot /usr/bin/certbot
-
-# Get SSL certificate (replace with your domain)
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-
-# Test automatic renewal
+# Test auto-renewal
 sudo certbot renew --dry-run
 ```
 
-## Part 7: Frontend Deployment (Static Hosting)
+## Step 7: Configure Firewall and Security
 
-### Option A: Serve Frontend from Same Server
-
-The Nginx configuration above already handles this. Your frontend will be available at your domain.
-
-### Option B: Deploy Frontend to Netlify (Recommended)
-
-1. **Build Frontend Locally**
-   ```bash
-   # On your local machine
-   npm run build
-   ```
-
-2. **Deploy to Netlify**
-   - Go to [Netlify](https://netlify.com)
-   - Drag and drop the `dist/public` folder
-   - Configure redirects by creating `dist/public/_redirects`:
-   ```
-   /api/* https://your-api-domain.com/api/:splat 200
-   /* /index.html 200
-   ```
-
-## Part 8: Testing and Monitoring
-
-### Step 10: Verify Deployment
-
+### 7.1 Setup UFW Firewall
 ```bash
-# Check if API is running
-curl http://your-domain.com/api/products
+# Enable firewall
+sudo ufw enable
 
-# Check PM2 status
-pm2 status
-pm2 logs trynex-api
+# Allow essential ports
+sudo ufw allow 22/tcp      # SSH
+sudo ufw allow 80/tcp      # HTTP
+sudo ufw allow 443/tcp     # HTTPS
+sudo ufw allow 5432/tcp    # PostgreSQL (local only)
 
-# Check Nginx status
-sudo systemctl status nginx
-
-# Check disk space
-df -h
-
-# Check memory usage
-free -h
+# Check status
+sudo ufw status
 ```
 
-### Step 11: Setup Monitoring (Optional)
-
+### 7.2 Secure PostgreSQL
 ```bash
-# Install PM2 monitoring
-pm2 install pm2-logrotate
+# Edit PostgreSQL config for security
+sudo nano /etc/postgresql/14/main/pg_hba.conf
 
-# Setup log rotation
-pm2 set pm2-logrotate:max_size 10M
-pm2 set pm2-logrotate:retain 30
-pm2 set pm2-logrotate:compress true
+# Change the line to be more restrictive:
+# host all all 127.0.0.1/32 md5  # Local connections only
+
+# Restart PostgreSQL
+sudo systemctl restart postgresql
 ```
 
-## Part 9: Backup and Maintenance
+## Step 8: Setup Monitoring and Logs
 
-### Step 12: Setup Automated Backups
-
+### 8.1 Configure Log Rotation
 ```bash
-# Create backup script
-nano ~/backup-script.sh
+# Create logrotate configuration
+sudo nano /etc/logrotate.d/trynex
+
+# Add:
+/home/ubuntu/.pm2/logs/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 644 ubuntu ubuntu
+    postrotate
+        pm2 reloadLogs
+    endscript
+}
 ```
 
+### 8.2 Setup Basic Monitoring
 ```bash
-#!/bin/bash
-# Backup script for Trynex E-commerce
+# Install htop for system monitoring
+sudo apt install htop
 
+# Monitor application
+pm2 monit
+
+# Check logs
+pm2 logs trynex-ecommerce
+```
+
+## Step 9: Create Backup Scripts
+
+### 9.1 Database Backup Script
+```bash
 # Create backup directory
-mkdir -p ~/backups
+mkdir -p /home/ubuntu/backups
 
-# Backup uploads directory
-tar -czf ~/backups/uploads-$(date +%Y%m%d).tar.gz /var/www/trynex-ecommerce/uploads/
+# Create backup script
+cat > /home/ubuntu/backup-db.sh << 'EOF'
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/home/ubuntu/backups"
+DB_NAME="trynex_db"
+DB_USER="trynex_user"
+
+pg_dump -h localhost -U $DB_USER $DB_NAME > $BACKUP_DIR/trynex_backup_$DATE.sql
 
 # Keep only last 7 days of backups
-find ~/backups -name "uploads-*.tar.gz" -mtime +7 -delete
+find $BACKUP_DIR -name "trynex_backup_*.sql" -mtime +7 -delete
 
-echo "Backup completed: $(date)"
+echo "Database backup completed: trynex_backup_$DATE.sql"
+EOF
+
+# Make executable
+chmod +x /home/ubuntu/backup-db.sh
+
+# Add to crontab for daily backups at 2 AM
+crontab -e
+# Add: 0 2 * * * /home/ubuntu/backup-db.sh
 ```
+
+## Step 10: Final Configuration and Testing
+
+### 10.1 Update Security Group
+1. Go to AWS Console → EC2 → Security Groups
+2. Remove port 5000 access (app now runs through Nginx)
+3. Keep only ports 22, 80, 443
+
+### 10.2 Test Application
+```bash
+# Check if application is running
+pm2 status
+
+# Test local access
+curl http://localhost:5000
+
+# Test external access
+curl http://YOUR_ELASTIC_IP
+```
+
+### 10.3 Admin Panel Access
+- URL: `http://YOUR_DOMAIN_OR_IP/admin`
+- Username: `admin`
+- Password: `admin123`
+
+## Production Optimizations
+
+### Performance Tuning
+```bash
+# Optimize PM2 for production
+pm2 start ecosystem.config.js --env production -i max
+
+# Enable gzip compression in Nginx
+sudo nano /etc/nginx/nginx.conf
+# Uncomment gzip settings
+
+# Restart services
+sudo systemctl restart nginx
+pm2 restart all
+```
+
+### Database Optimization
+```bash
+# Edit PostgreSQL configuration
+sudo nano /etc/postgresql/14/main/postgresql.conf
+
+# Add these optimizations:
+shared_preload_libraries = 'pg_stat_statements'
+max_connections = 100
+shared_buffers = 256MB
+effective_cache_size = 1GB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+
+# Restart PostgreSQL
+sudo systemctl restart postgresql
+```
+
+## Maintenance Commands
 
 ```bash
-# Make script executable
-chmod +x ~/backup-script.sh
+# Application management
+pm2 restart trynex-ecommerce
+pm2 stop trynex-ecommerce
+pm2 delete trynex-ecommerce
+pm2 logs trynex-ecommerce
 
-# Add to crontab (daily backups at 2 AM)
-crontab -e
-# Add this line:
-# 0 2 * * * /home/ubuntu/backup-script.sh >> /home/ubuntu/backup.log 2>&1
+# System updates
+sudo apt update && sudo apt upgrade -y
+
+# Database maintenance
+sudo -u postgres psql -d trynex_db -c "VACUUM ANALYZE;"
+
+# SSL certificate renewal (automatic)
+sudo certbot renew
 ```
-
-## Part 10: Domain and DNS Setup
-
-### Step 13: Configure DNS
-
-1. **Point Domain to EC2**
-   - Go to your domain registrar
-   - Create/Update A record: `your-domain.com` → `Your-EC2-Public-IP`
-   - Create CNAME record: `www.your-domain.com` → `your-domain.com`
-
-2. **Wait for DNS propagation** (can take 24-48 hours)
 
 ## Troubleshooting
 
-### Common Issues and Solutions
+### Common Issues
 
 1. **Application won't start**
    ```bash
-   pm2 logs trynex-api
-   # Check for database connection issues
+   pm2 logs trynex-ecommerce
+   cd /home/ubuntu/trynex-ecommerce
+   npm run dev  # Test manually
    ```
 
-2. **Nginx 502 Bad Gateway**
+2. **Database connection issues**
    ```bash
-   # Check if Node.js app is running
-   pm2 status
-   # Check Nginx error logs
-   sudo tail -f /var/log/nginx/error.log
+   sudo systemctl status postgresql
+   sudo -u postgres psql -c "\l"  # List databases
    ```
 
-3. **File upload issues**
+3. **Nginx configuration errors**
    ```bash
-   # Check directory permissions
-   ls -la /var/www/trynex-ecommerce/uploads/
-   # Fix permissions if needed
-   sudo chown -R ubuntu:ubuntu /var/www/trynex-ecommerce/uploads/
-   chmod 755 /var/www/trynex-ecommerce/uploads/
+   sudo nginx -t
+   sudo systemctl status nginx
+   tail -f /var/log/nginx/error.log
    ```
 
-4. **Database connection failed**
+4. **SSL certificate issues**
    ```bash
-   # Check environment variables
-   cat .env
-   # Test database connection
-   node -e "console.log(process.env.DATABASE_URL)"
+   sudo certbot certificates
+   sudo certbot renew --dry-run
    ```
 
-## Security Recommendations
+## Cost Optimization
 
-1. **Firewall Setup**
-   ```bash
-   sudo ufw enable
-   sudo ufw allow ssh
-   sudo ufw allow 'Nginx Full'
-   ```
+### EC2 Instance Types
+- **Development/Testing**: t2.micro (Free Tier)
+- **Small Production**: t2.small ($16/month)
+- **Medium Production**: t2.medium ($33/month)
+- **High Traffic**: t3.large ($67/month)
 
-2. **Keep System Updated**
-   ```bash
-   # Setup automatic security updates
-   sudo apt install unattended-upgrades
-   sudo dpkg-reconfigure -plow unattended-upgrades
-   ```
+### Additional AWS Services
+- **CloudFront CDN**: $1-10/month (recommended)
+- **Route 53 DNS**: $0.50/month per domain
+- **Elastic Load Balancer**: $16/month (for high availability)
+- **RDS PostgreSQL**: $15-50/month (managed database alternative)
 
-3. **Regular Security Audits**
-   ```bash
-   # Check for vulnerable packages
-   npm audit
-   npm audit fix
-   ```
+## Security Best Practices
 
-## Performance Optimization
+1. **Regular Updates**
+   - Keep system packages updated
+   - Update Node.js and npm regularly
+   - Monitor security advisories
 
-1. **Enable Gzip Compression**
-   ```bash
-   sudo nano /etc/nginx/nginx.conf
-   # Uncomment gzip settings
-   ```
-
-2. **Database Optimization**
-   - Monitor query performance
-   - Add indexes where needed
-   - Consider connection pooling
+2. **Access Control**
+   - Use SSH keys only (disable password authentication)
+   - Implement fail2ban for SSH protection
+   - Regular security group reviews
 
 3. **Monitoring**
-   ```bash
-   # Install monitoring tools
-   sudo apt install htop iotop
-   ```
+   - Set up CloudWatch alerts
+   - Monitor application logs
+   - Track database performance
 
-## Estimated Costs
+4. **Backups**
+   - Daily database backups
+   - Application file backups
+   - Test restore procedures
 
-- **t2.micro (Free Tier)**: $0/month for first year
-- **t3.small (Production)**: ~$15-20/month
-- **Additional costs**: 
-  - Domain: ~$10-15/year
-  - SSL: Free with Let's Encrypt
-  - Data transfer: Varies by usage
+## Support and Maintenance
 
-## Support
+### Regular Tasks
+- Weekly: Check system resources and logs
+- Monthly: Review security updates and patches
+- Quarterly: Database maintenance and optimization
+- Annually: SSL certificate renewal (if not automatic)
 
-If you encounter issues:
+### Monitoring URLs
+- Application: `http://YOUR_DOMAIN`
+- Admin Panel: `http://YOUR_DOMAIN/admin`
+- Server Status: `sudo systemctl status nginx postgresql`
+- Application Status: `pm2 status`
 
-1. Check application logs: `pm2 logs trynex-api`
-2. Check system logs: `sudo tail -f /var/log/syslog`
-3. Verify configurations match the guide exactly
-4. Ensure all environment variables are set correctly
+---
 
-## Post-Deployment Checklist
+## Quick Commands Reference
 
-- [ ] EC2 instance is running and accessible
-- [ ] Node.js application starts without errors
-- [ ] Database connection is working
-- [ ] API endpoints respond correctly
-- [ ] File uploads work properly
-- [ ] Admin panel is accessible
-- [ ] Frontend loads and functions correctly
-- [ ] SSL certificate is installed (if applicable)
-- [ ] Backups are configured
-- [ ] Monitoring is setup
-- [ ] DNS is properly configured
+```bash
+# Application Control
+pm2 restart all
+pm2 stop all
+pm2 delete all
+pm2 logs
 
-Your Trynex Lifestyle e-commerce application should now be live and accessible to customers!
+# System Services
+sudo systemctl restart nginx
+sudo systemctl restart postgresql
+sudo systemctl status nginx
+sudo systemctl status postgresql
 
-**Important**: Remember to update the API endpoints in your frontend code to point to your production domain instead of localhost before deploying the frontend.
+# Database
+sudo -u postgres psql
+\l  # List databases
+\c trynex_db  # Connect to database
+\dt  # List tables
+\quit
+
+# Logs
+tail -f /var/log/nginx/access.log
+tail -f /var/log/nginx/error.log
+pm2 logs trynex-ecommerce
+```
+
+Your Bengali e-commerce platform is now successfully deployed on AWS EC2 with production-grade configuration, security, and monitoring!
