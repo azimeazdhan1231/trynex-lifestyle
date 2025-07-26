@@ -24,6 +24,7 @@ import bcrypt from "bcrypt";
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.warn("DATABASE_URL not provided, using memory storage for development");
+  throw new Error("DATABASE_URL environment variable is required for database operations");
 }
 
 const client = postgres(connectionString);
