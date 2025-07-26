@@ -7,7 +7,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://16.170.250.199';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export async function apiRequest(
   method: string,
