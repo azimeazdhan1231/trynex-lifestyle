@@ -338,6 +338,10 @@ class MemoryStorage implements IStorage {
     return newEntry;
   }
 
+  async createOrderTimeline(entry: InsertOrderTimeline): Promise<OrderTimeline> {
+    return this.addOrderTimelineEntry(entry);
+  }
+
   async getAdminByUsername(username: string): Promise<AdminUser | undefined> {
     return this.admins.find(a => a.username === username);
   }
@@ -482,6 +486,10 @@ export class DatabaseStorage implements IStorage {
   async addOrderTimelineEntry(entry: InsertOrderTimeline): Promise<OrderTimeline> {
     const result = await db.insert(orderTimeline).values(entry).returning();
     return result[0];
+  }
+
+  async createOrderTimeline(entry: InsertOrderTimeline): Promise<OrderTimeline> {
+    return this.addOrderTimelineEntry(entry);
   }
 
   // Admin Users

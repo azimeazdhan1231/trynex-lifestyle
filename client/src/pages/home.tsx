@@ -12,93 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PRODUCT_CATEGORIES } from '@shared/schema';
 import type { Product } from '@shared/schema';
 
-// Sample products for each category with real-looking data
-const FEATURED_PRODUCTS = [
-  {
-    id: '1',
-    name: 'Premium Love Mug',
-    nameBn: 'প্রিমিয়াম লাভ মগ',
-    category: 'mugs',
-    price: 550,
-    originalPrice: 650,
-    image: '/api/placeholder/300/300',
-    isCustomizable: true,
-    isFeatured: true,
-    rating: 4.8,
-    reviews: 124,
-    badge: 'bestseller'
-  },
-  {
-    id: '2',
-    name: 'Magic Color Change Mug',
-    nameBn: 'ম্যাজিক কালার চেঞ্জ মগ',
-    category: 'mugs',
-    price: 750,
-    originalPrice: 850,
-    image: '/api/placeholder/300/300',
-    isCustomizable: true,
-    isFeatured: true,
-    rating: 4.9,
-    reviews: 89,
-    badge: 'popular'
-  },
-  {
-    id: '3',
-    name: 'Custom Couple T-Shirt',
-    nameBn: 'কাস্টম কাপল টি-শার্ট',
-    category: 'tshirts',
-    price: 1100,
-    originalPrice: 1300,
-    image: '/api/placeholder/300/300',
-    isCustomizable: true,
-    isFeatured: true,
-    rating: 4.7,
-    reviews: 156,
-    badge: 'romantic'
-  },
-  {
-    id: '4',
-    name: 'Premium Steel Water Bottle',
-    nameBn: 'প্রিমিয়াম স্টিল ওয়াটার বোতল',
-    category: 'waterBottles',
-    price: 800,
-    originalPrice: 950,
-    image: '/api/placeholder/300/300',
-    isCustomizable: true,
-    isFeatured: true,
-    rating: 4.6,
-    reviews: 78,
-    badge: 'eco'
-  },
-  {
-    id: '5',
-    name: 'Luxury Gift Hamper',
-    nameBn: 'লাক্সারি গিফট হ্যাম্পার',
-    category: 'premiumLuxuryGiftHampers',
-    price: 2500,
-    originalPrice: 3000,
-    image: '/api/placeholder/300/300',
-    isCustomizable: false,
-    isFeatured: true,
-    rating: 5.0,
-    reviews: 45,
-    badge: 'luxury'
-  },
-  {
-    id: '6',
-    name: 'Baby Safe Mug',
-    nameBn: 'বেবি সেফ মগ',
-    category: 'giftsForBabies',
-    price: 450,
-    originalPrice: 550,
-    image: '/api/placeholder/300/300',
-    isCustomizable: true,
-    isFeatured: true,
-    rating: 4.8,
-    reviews: 234,
-    badge: 'safe'
-  }
-];
+// This component now uses only database products - no mock data
 
 export default function HomePage() {
   const { language, t } = useLanguage();
@@ -217,7 +131,19 @@ export default function HomePage() {
             {language === 'bn' ? 'ফিচার্ড প্রোডাক্ট' : 'Featured Products'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {FEATURED_PRODUCTS.map((product) => (
+            {isLoading ? (
+              // Loading skeleton
+              Array(6).fill(0).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-64 bg-gray-200 rounded-t-lg"></div>
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              featuredProducts.map((product) => (
               <Card key={product.id} className="group hover:scale-105 transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl">
                 <div className="relative">
                   <img
@@ -225,12 +151,14 @@ export default function HomePage() {
                     alt={language === 'bn' ? product.nameBn : product.name}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <Badge className={`absolute top-3 left-3 ${getBadgeStyle(product.badge)}`}>
-                    {getBadgeText(product.badge)}
-                  </Badge>
-                  {product.originalPrice > product.price && (
+                  {product.isFeatured && (
+                    <Badge className="absolute top-3 left-3 bg-purple-500 text-white">
+                      {language === 'bn' ? 'ফিচার্ড' : 'Featured'}
+                    </Badge>
+                  )}
+                  {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
                     <Badge className="absolute top-3 right-3 bg-red-500 text-white">
-                      -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      -{Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)}%
                     </Badge>
                   )}
                   <Button
@@ -251,17 +179,17 @@ export default function HomePage() {
                   <div className="flex items-center mb-3">
                     <div className="flex text-yellow-400">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'fill-current' : ''}`} />
+                        <Star key={i} className="h-4 w-4 fill-current" />
                       ))}
                     </div>
                     <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                      {product.rating} ({product.reviews})
+                      5.0 (প্রিমিয়াম)
                     </span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <span className="text-2xl font-bold text-purple-600">৳{product.price}</span>
-                      {product.originalPrice > product.price && (
+                      {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
                         <span className="text-sm text-gray-500 line-through ml-2">৳{product.originalPrice}</span>
                       )}
                     </div>
@@ -287,7 +215,8 @@ export default function HomePage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
           </div>
           <div className="text-center mt-12">
             <Link href="/products">
