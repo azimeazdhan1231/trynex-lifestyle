@@ -19,6 +19,7 @@ A comprehensive Bengali e-commerce platform specializing in personalized ceramic
 - ✅ **2025-07-26**: **FIXED PROMO OFFER UPDATE FUNCTIONALITY** - Edit buttons now work perfectly
 - ✅ **2025-07-26**: Resolved date conversion issues in database storage layer
 - ✅ **2025-07-26**: **DEPLOYMENT READY** - Created comprehensive AWS EC2 deployment guide only
+- ✅ **2025-07-26**: **EC2 TROUBLESHOOTING** - Created step-by-step EC2 connection fix guide
 - ✅ **2025-07-26**: Added ProductForm and PromoOfferForm components for admin panel
 
 ## Database Setup
@@ -42,6 +43,7 @@ The application now uses PostgreSQL with complete schema including:
 - Architecture: Full-stack with clear separation of concerns
 - Database: PostgreSQL with proper indexing and relationships
 - Deployment: AWS EC2 instances only (all other deployment guides removed)
+- Current Issue: EC2 SSH connection timeout, using Supabase database instead of local PostgreSQL
 
 ## Key Features
 1. **Bilingual Support**: Complete English/Bengali localization
