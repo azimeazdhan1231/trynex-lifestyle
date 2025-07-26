@@ -32,7 +32,7 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres.ickc
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
-let useMemoryStorage = false; // Now using proper database connection
+let useMemoryStorage = true; // Temporarily using memory storage for orders
 
 try {
   const client = postgres(connectionString, {
@@ -111,6 +111,7 @@ class MemoryStorage implements IStorage {
       images: ['/api/placeholder/300/300'],
       isCustomizable: true,
       isFeatured: true,
+      inStock: true,
       isActive: true,
       features: ['Dishwasher safe', 'Microwave safe', 'Premium ceramic'],
       featuresBn: ['ডিশওয়াশার নিরাপদ', 'মাইক্রোওয়েভ নিরাপদ', 'প্রিমিয়াম সিরামিক'],
@@ -552,10 +553,24 @@ export class DatabaseStorage implements IStorage {
 
   async createOrder(order: InsertOrder): Promise<Order> {
     const trackingId = `TRX${Date.now().toString().slice(-6)}${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-    const result = await db.insert(orders).values({
-      ...order,
+    // Only use fields that exist in the current database schema
+    const orderData = {
       trackingId,
-    }).returning();
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      customerEmail: order.customerEmail,
+      district: order.district,
+      thana: order.thana,
+      address: order.address,
+      items: order.items,
+      total: order.total,
+      paymentMethod: order.paymentMethod,
+      paymentNumber: order.paymentNumber,
+      paymentScreenshot: order.paymentScreenshot,
+      status: order.status || 'pending',
+      notes: order.notes,
+    };
+    const result = await db.insert(orders).values(orderData).returning();
 
     // Add initial timeline entry
     await this.addOrderTimelineEntry({

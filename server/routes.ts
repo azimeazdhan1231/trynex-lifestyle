@@ -93,7 +93,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completeOrderData = {
         ...orderData,
         trackingId,
-        subtotal: subtotal.toString(),
         total: total.toString(),
         status: 'pending',
         items: JSON.stringify(items)
@@ -110,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const order = await storage.createOrder(validatedOrder);
       
       // Create initial order timeline entry
-      await storage.createOrderTimeline({
+      await storage.addOrderTimelineEntry({
         orderId: order.id,
         status: 'pending',
         message: 'অর্ডার গ্রহণ করা হয়েছে এবং যাচাই করা হচ্ছে',

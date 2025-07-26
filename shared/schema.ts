@@ -37,8 +37,8 @@ export const orders = pgTable("orders", {
   thana: text("thana").notNull(),
   address: text("address").notNull(),
   items: jsonb("items").notNull(), // Array of cart items
-  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
-  deliveryCharge: decimal("delivery_charge", { precision: 10, scale: 2 }).default("60"),
+
+
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: text("payment_method").notNull(),
   paymentNumber: text("payment_number"),
