@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { Search, ShoppingCart, Heart, Star, ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/translations';
 import { useCart } from '@/lib/cart';
+import { useToast } from '@/hooks/use-toast';
 import { PRODUCT_CATEGORIES } from '@shared/schema';
+import type { Product } from '@shared/schema';
 
 // Sample products for each category with real-looking data
 const FEATURED_PRODUCTS = [
@@ -100,15 +103,30 @@ const FEATURED_PRODUCTS = [
 export default function HomePage() {
   const { language, t } = useLanguage();
   const { addItem } = useCart();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAddToCart = (product: any) => {
+  // Fetch real products from API
+  const { data: products = [], isLoading } = useQuery<Product[]>({
+    queryKey: ['/api/products'],
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time updates
+  });
+
+  // Get featured products from real API data
+  const featuredProducts = products.filter(p => p.isFeatured && p.inStock).slice(0, 6);
+
+  const handleAddToCart = (product: Product) => {
     addItem({
       id: product.id,
       name: product.name,
       nameBn: product.nameBn,
-      price: product.price,
+      price: parseFloat(product.price),
       image: product.image,
+    });
+    
+    toast({
+      title: "Added to Cart!",
+      description: `${language === 'bn' ? product.nameBn : product.name} has been added to your cart`,
     });
   };
 

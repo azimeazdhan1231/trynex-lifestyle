@@ -1,170 +1,184 @@
-import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Link } from 'wouter';
 import { useCart } from '@/lib/cart';
 import { useLanguage } from '@/lib/translations';
-import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ShoppingCart, Plus, Minus, Trash2, X } from 'lucide-react';
 
 export default function CartSidebar() {
-  const { state, removeItem, updateQuantity, closeCart, getTotalItems, getTotalPrice } = useCart();
-  const { language, t } = useLanguage();
+  const { state, removeItem, updateQuantity, getTotalItems, getTotalPrice, toggleCart, closeCart } = useCart();
+  const { language } = useLanguage();
 
-  if (!state.isOpen) return null;
+  const deliveryCharge = 60;
+  const total = getTotalPrice() + (getTotalPrice() > 0 ? deliveryCharge : 0);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={closeCart}
-      />
-      
-      {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-900 shadow-xl z-50 transform transition-transform duration-300 ease-in-out">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2">
-              <ShoppingBag className="h-6 w-6 text-purple-600" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t.cart}
-              </h2>
-              {getTotalItems() > 0 && (
-                <Badge className="bg-purple-600 text-white">
-                  {getTotalItems()}
-                </Badge>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={closeCart}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
+    <Sheet open={state.isOpen} onOpenChange={toggleCart}>
+      <SheetContent className="w-full sm:max-w-lg" data-testid="cart-sidebar">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            {language === 'bn' ? 'শপিং কার্ট' : 'Shopping Cart'}
+            {getTotalItems() > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {getTotalItems()}
+              </Badge>
+            )}
+          </SheetTitle>
+        </SheetHeader>
 
-          {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {state.items.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingBag className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-                  {language === 'bn' ? 'আপনার কার্ট খালি' : 'Your cart is empty'}
-                </p>
-                <Link href="/products">
-                  <Button 
-                    onClick={closeCart}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                  >
-                    {language === 'bn' ? 'শপিং করুন' : 'Start Shopping'}
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {state.items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <img
-                      src={item.image || '/api/placeholder/80/80'}
-                      alt={language === 'bn' ? item.nameBn : item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                        {language === 'bn' ? item.nameBn : item.name}
-                      </h4>
-                      <p className="text-purple-600 font-semibold">
-                        ৳{item.price}
-                      </p>
+        <div className="flex flex-col h-full">
+          {state.items.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+              <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {language === 'bn' ? 'আপনার কার্ট খালি' : 'Your cart is empty'}
+              </h3>
+              <p className="text-gray-500 mb-6">
+                {language === 'bn' 
+                  ? 'শপিং শুরু করতে কিছু পণ্য যোগ করুন'
+                  : 'Add some products to start shopping'
+                }
+              </p>
+              <Link href="/products">
+                <Button onClick={closeCart} data-testid="button-browse-products">
+                  {language === 'bn' ? 'পণ্য দেখুন' : 'Browse Products'}
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Cart Items */}
+              <div className="flex-1 overflow-y-auto py-4">
+                <div className="space-y-4">
+                  {state.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg" data-testid={`cart-item-${item.id}`}>
+                      <div className="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.image || '/api/placeholder/300/300'}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="text-sm font-medium w-8 text-center">
-                          {item.quantity}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm truncate">
+                          {language === 'bn' ? item.nameBn : item.name}
+                        </h4>
+                        <p className="text-purple-600 font-semibold">
+                          ৳{item.price.toLocaleString()}
+                        </p>
+                        
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                            className="h-7 w-7 p-0"
+                            data-testid={`button-decrease-${item.id}`}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          
+                          <span className="w-8 text-center text-sm font-medium" data-testid={`quantity-${item.id}`}>
+                            {item.quantity}
+                          </span>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="h-7 w-7 p-0"
+                            data-testid={`button-increase-${item.id}`}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeItem(item.id)}
+                            className="h-7 w-7 p-0 ml-auto"
+                            data-testid={`button-remove-${item.id}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="font-semibold" data-testid={`item-total-${item.id}`}>
+                          ৳{(item.price * item.quantity).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        ৳{item.price * item.quantity}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 mt-1"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Footer with Total and Checkout */}
-          {state.items.length > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t.total}:
-                </span>
-                <span className="text-2xl font-bold text-purple-600">
-                  ৳{getTotalPrice()}
-                </span>
-              </div>
-              
-              <div className="space-y-3">
-                <Link href="/checkout">
-                  <Button 
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3"
-                    onClick={closeCart}
-                  >
-                    {t.checkout}
-                  </Button>
-                </Link>
-                
-                <Link href="/products">
+              {/* Cart Summary */}
+              <div className="border-t pt-4 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{language === 'bn' ? 'সাবটোটাল' : 'Subtotal'}</span>
+                    <span data-testid="text-subtotal">৳{getTotalPrice().toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{language === 'bn' ? 'ডেলিভারি চার্জ' : 'Delivery Charge'}</span>
+                    <span data-testid="text-delivery">৳{deliveryCharge}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-semibold">
+                    <span>{language === 'bn' ? 'মোট' : 'Total'}</span>
+                    <span className="text-lg text-purple-600" data-testid="text-total">
+                      ৳{total.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Link href="/checkout">
+                    <Button 
+                      className="w-full" 
+                      size="lg"
+                      onClick={closeCart}
+                      data-testid="button-checkout"
+                    >
+                      {language === 'bn' ? 'চেকআউট' : 'Proceed to Checkout'}
+                    </Button>
+                  </Link>
                   <Button 
                     variant="outline" 
-                    className="w-full border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    className="w-full"
                     onClick={closeCart}
+                    data-testid="button-continue-shopping"
                   >
-                    {language === 'bn' ? 'আরও কিনুন' : 'Continue Shopping'}
+                    {language === 'bn' ? 'কেনাকাটা চালিয়ে যান' : 'Continue Shopping'}
                   </Button>
-                </Link>
-              </div>
+                </div>
 
-              <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
-                {language === 'bn' 
-                  ? 'ডেলিভারি চার্জ চেকআউটে যোগ হবে'
-                  : 'Delivery charges will be added at checkout'
-                }
+                {/* Delivery Info */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-xs text-blue-700">
+                    <p className="font-medium mb-1">
+                      {language === 'bn' ? '📦 ডেলিভারি তথ্য' : '📦 Delivery Info'}
+                    </p>
+                    <p>
+                      {language === 'bn' 
+                        ? '• ঢাকায় ১-২ দিন • ঢাকার বাইরে ৩-৪ দিন'
+                        : '• Dhaka: 1-2 days • Outside Dhaka: 3-4 days'
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }

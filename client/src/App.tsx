@@ -8,10 +8,12 @@ import { CartProvider } from "@/lib/cart";
 import Header from "@/components/layout/Header";
 import CartSidebar from "@/components/layout/CartSidebar";
 import Home from "@/pages/home";
+import Products from "@/pages/products";
 import Admin from "@/pages/admin";
 import ComprehensiveAdmin from "@/pages/comprehensive-admin";
 import Checkout from "@/pages/checkout";
 import CustomDesign from "@/pages/custom-design";
+import OrderTracking from "@/pages/order-tracking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,11 +23,12 @@ function Router() {
       <main>
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/products" component={() => <div className="p-8 text-center">Products Page Coming Soon</div>} />
+          <Route path="/products" component={Products} />
           <Route path="/custom-design" component={CustomDesign} />
           <Route path="/contact" component={() => <div className="p-8 text-center">Contact Page Coming Soon</div>} />
           <Route path="/admin" component={ComprehensiveAdmin} />
           <Route path="/checkout" component={Checkout} />
+          <Route path="/track" component={OrderTracking} />
           <Route component={NotFound} />
         </Switch>
       </main>
