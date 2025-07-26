@@ -1,0 +1,171 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 17:10:29 UTC 2025
+
+  System load:  0.08              Temperature:           -273.1 C
+  Usage of /:   48.1% of 6.71GB   Processes:             120
+  Memory usage: 34%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 17:00:22 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ curl -sSL https://raw.githubusercontent.com/azimeazdhan1231/trynex-lifestyle/main/EMERGENCY_FIX_EC2.sh | bash
+bash: line 1: 404:: command not found
+ubuntu@ip-172-31-45-165:~$ curl -sSL https://raw.githubusercontent.com/azimeazdhan1231/trynex-lifestyle/main/EMERGENCY_FIX_EC2.sh | bash
+bash: line 1: 404:: command not found
+ubuntu@ip-172-31-45-165:~$ #!/bin/bash
+
+# EMERGENCY FIX for EC2 500 Error
+# This will make your site work immediately by using memory storage temporarily
+
+echo "🚨 EMERGENCY FIX: Making your site work now..."
+
+cd /home/ubuntu/trynex-lifestyle
+
+# Kill current broken server
+pkill -f "node" 2>/dev/null || true
+pkill -f "npm" 2>/dev/null || true
+
+# Create emergency environment with memory storage fallback
+cat > .env << 'EOF'
+NODE_ENV=production
+PORT=5000
+USE_MEMORY_STORAGE=true
+DATABASE_URL=postgresql://postgres:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&sslmode=require
+SUPABASE_URL=https://ickclyevpbgmppqizfov.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlja2NseWV2cGJnbXBwcWl6Zm92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM1MTQxNzYsImV4cCI6MjA2OTA5MDE3Nn0.U51E8uTOxGkA-7qJJKlD2qlJdC0cDMGLkCDdI1IAlD0
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_bHnsPbEX-rI3HfF2zcfmCw_iTN05LU3
+VITE_API_URL=http://16.170.250.199
+EOF
+
+# Start server with memory storage (will work immediately)
+nohup npm run start > /home/ubuntu/server.log 2>&1 &
+
+echo "⏳ Waiting for server to start..."
+sleep 15
+
+# Test server
+if curl -f http://localhost:5000/api/products > /dev/null 2>&1; then
+    echo "✅ Server is working!"
+else
+    echo "❌ Server still not working, check logs:"
+    tail -20 /home/ubuntu/server.log
+    exit 1
+echo "   Processes:   ps aux | grep node"og/nginx/trynex_error.log"ble)"th 2>/dev/null || echo "5")
+🚨 EMERGENCY FIX: Making your site work now...
+[1] 35965
+⏳ Waiting for server to start...
+✅ Server is working!
+server {
+    listen 80;
+    server_name 16.170.250.199 _;
+    
+    # Better error logging
+    error_log /var/log/nginx/trynex_error.log debug;
+    access_log /var/log/nginx/trynex_access.log;
+    
+    # Serve static files
+    location / {
+        root /home/ubuntu/trynex-lifestyle/dist/public;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        
+        # Static file caching
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+    
+    # API proxy with error handling
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffer settings
+        proxy_buffering off;
+        proxy_request_buffering off;
+        
+        # Error handling
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @api_error;
+    }
+    
+    # API error handler
+    location @api_error {
+        add_header Content-Type application/json always;
+        return 503 '{"error": "API temporarily unavailable", "status": 503}';
+    }
+    
+    # File uploads
+    location /uploads/ {
+        root /home/ubuntu/trynex-lifestyle;
+        expires 1d;
+    }
+    
+    # Health check
+    location /health {
+        access_log off;
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+}
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+✅ Nginx reloaded successfully
+
+🔍 Final testing...
+❌ Website still not accessible
+🔍 Checking Nginx logs:
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [crit] 35498#35498: *11 stat() "/home/ubuntu/trynex-lifestyle/dist/public/index.html" failed (13: Permission denied), client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+2025/07/26 17:12:02 [error] 35498#35498: *11 rewrite or internal redirection cycle while internally redirecting to "/index.html", client: 16.170.250.199, server: 16.170.250.199, request: "HEAD / HTTP/1.1", host: "16.170.250.199"
+✅ API is working
+📦 Products available: 5
+
+🎉 EMERGENCY FIX COMPLETE!
+🌐 Your site should now work at: http://16.170.250.199
+📝 Using memory storage temporarily (5 Bengali products available)
+🔧 Admin panel: http://16.170.250.199/admin (admin/admin123)
+
+📊 Check status:
+   Server logs: tail -f /home/ubuntu/server.log
+   Nginx logs:  sudo tail -f /var/log/nginx/trynex_error.log
+   Processes:   ps aux | grep node
+ubuntu@ip-172-31-45-165:~/trynex-lifestyle$ 
