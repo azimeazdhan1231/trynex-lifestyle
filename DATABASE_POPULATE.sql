@@ -1,14 +1,86 @@
 -- Complete SQL Script to Populate Trynex Lifestyle Database
 -- Run this in your Supabase SQL Editor
 
--- Clear existing data (optional - remove if you want to keep existing data)
--- DELETE FROM order_timeline;
--- DELETE FROM custom_designs;
--- DELETE FROM orders;
--- DELETE FROM products;
--- DELETE FROM admin_users;
+-- First, let's ensure the database schema is correct
+-- Add missing columns if they don't exist
+DO $$ 
+BEGIN
+    -- Add in_stock column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'in_stock') THEN
+        ALTER TABLE products ADD COLUMN in_stock boolean DEFAULT true;
+    END IF;
+    
+    -- Ensure created_at exists
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'created_at') THEN
+        ALTER TABLE products ADD COLUMN created_at timestamp DEFAULT NOW();
+    END IF;
+    
+    -- Update any missing columns in orders table
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'customer_name') THEN
+        ALTER TABLE orders ADD COLUMN customer_name text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'customer_phone') THEN
+        ALTER TABLE orders ADD COLUMN customer_phone text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'customer_email') THEN
+        ALTER TABLE orders ADD COLUMN customer_email text;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'district') THEN
+        ALTER TABLE orders ADD COLUMN district text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'thana') THEN
+        ALTER TABLE orders ADD COLUMN thana text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'address') THEN
+        ALTER TABLE orders ADD COLUMN address text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'items') THEN
+        ALTER TABLE orders ADD COLUMN items jsonb NOT NULL DEFAULT '[]';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'subtotal') THEN
+        ALTER TABLE orders ADD COLUMN subtotal decimal(10,2) NOT NULL DEFAULT 0;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'delivery_charge') THEN
+        ALTER TABLE orders ADD COLUMN delivery_charge decimal(10,2) DEFAULT 60;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'total') THEN
+        ALTER TABLE orders ADD COLUMN total decimal(10,2) NOT NULL DEFAULT 0;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'payment_method') THEN
+        ALTER TABLE orders ADD COLUMN payment_method text NOT NULL DEFAULT '';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'payment_number') THEN
+        ALTER TABLE orders ADD COLUMN payment_number text;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'notes') THEN
+        ALTER TABLE orders ADD COLUMN notes text;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'updated_at') THEN
+        ALTER TABLE orders ADD COLUMN updated_at timestamp DEFAULT NOW();
+    END IF;
+END $$;
 
--- Insert sample products
+-- Clear existing data (optional - remove if you want to keep existing data)
+DELETE FROM order_timeline;
+DELETE FROM custom_designs;
+DELETE FROM orders;
+DELETE FROM products;
+DELETE FROM admin_users;
+
+-- Insert sample products (excluding id to let it auto-generate)
 INSERT INTO products (
     name, 
     name_bn, 
@@ -22,6 +94,7 @@ INSERT INTO products (
     images, 
     is_customizable, 
     is_featured, 
+    in_stock,
     features, 
     features_bn, 
     tags, 
@@ -38,6 +111,7 @@ INSERT INTO products (
     '650',
     '/api/placeholder/300/300',
     ARRAY['/api/placeholder/300/300', '/api/placeholder/300/301'],
+    true,
     true,
     true,
     ARRAY['Dishwasher safe', 'Microwave safe', 'Premium ceramic', 'Custom design printing'],
@@ -58,6 +132,7 @@ INSERT INTO products (
     ARRAY['/api/placeholder/300/300', '/api/placeholder/300/302'],
     true,
     true,
+    true,
     ARRAY['Color changing technology', 'Heat sensitive coating', 'Premium ceramic base', 'Custom design reveal'],
     ARRAY['রঙ পরিবর্তনকারী প্রযুক্তি', 'তাপ সংবেদনশীল আবরণ', 'প্রিমিয়াম সিরামিক বেস', 'কাস্টম ডিজাইন প্রকাশ'],
     ARRAY['magic', 'surprise', 'gift', 'unique'],
@@ -74,6 +149,7 @@ INSERT INTO products (
     '1300',
     '/api/placeholder/300/300',
     ARRAY['/api/placeholder/300/300', '/api/placeholder/300/303'],
+    true,
     true,
     true,
     ARRAY['100% Cotton fabric', 'Available in all sizes', 'High-quality printing', 'Matching pair included'],
@@ -94,6 +170,7 @@ INSERT INTO products (
     ARRAY['/api/placeholder/300/300', '/api/placeholder/300/304'],
     true,
     true,
+    true,
     ARRAY['Stainless steel 304 grade', 'Temperature retention up to 12 hours', 'BPA free', 'Leak proof design'],
     ARRAY['স্টেইনলেস স্টিল ৩০৪ গ্রেড', '১২ ঘন্টা পর্যন্ত তাপমাত্রা ধরে রাখে', 'বিপিএ মুক্ত', 'লিক প্রুফ ডিজাইন'],
     ARRAY['bottle', 'steel', 'eco-friendly', 'health'],
@@ -111,6 +188,7 @@ INSERT INTO products (
     '/api/placeholder/300/300',
     ARRAY['/api/placeholder/300/300', '/api/placeholder/300/305'],
     false,
+    true,
     true,
     ARRAY['5 premium items included', 'Luxury packaging', 'Perfect for gifting', 'Customizable item selection'],
     ARRAY['৫টি প্রিমিয়াম আইটেম অন্তর্ভুক্ত', 'লাক্সারি প্যাকেজিং', 'উপহারের জন্য নিখুঁত', 'কাস্টমাইজেবল আইটেম নির্বাচন'],
@@ -130,6 +208,7 @@ INSERT INTO products (
     ARRAY['/api/placeholder/300/300'],
     true,
     false,
+    true,
     ARRAY['Premium wood material', 'Custom engraving available', 'Multiple sizes', 'Glass protection'],
     ARRAY['প্রিমিয়াম কাঠের উপাদান', 'কাস্টম খোদাই উপলব্ধ', 'একাধিক সাইজ', 'কাচের সুরক্ষা'],
     ARRAY['frame', 'photo', 'memory', 'decor'],
@@ -148,6 +227,7 @@ INSERT INTO products (
     ARRAY['/api/placeholder/300/300'],
     true,
     false,
+    true,
     ARRAY['Durable metal construction', 'Laser engraving', 'Multiple shapes available', 'Rust resistant'],
     ARRAY['টেকসই ধাতব নির্মাণ', 'লেজার খোদাই', 'একাধিক আকার উপলব্ধ', 'মরিচা প্রতিরোধী'],
     ARRAY['keychain', 'accessory', 'metal', 'portable'],
@@ -166,6 +246,7 @@ INSERT INTO products (
     ARRAY['/api/placeholder/300/300'],
     true,
     true,
+    true,
     ARRAY['16-piece complete set', 'Premium ceramic material', 'Dishwasher and microwave safe', 'Custom design printing'],
     ARRAY['১৬ পিস সম্পূর্ণ সেট', 'প্রিমিয়াম সিরামিক উপাদান', 'ডিশওয়াশার এবং মাইক্রোওয়েভ নিরাপদ', 'কাস্টম ডিজাইন প্রিন্টিং'],
     ARRAY['dinner', 'ceramic', 'family', 'kitchen'],
@@ -174,39 +255,41 @@ INSERT INTO products (
 
 -- Insert admin user (password: admin123)
 INSERT INTO admin_users (username, password_hash, role) VALUES 
-('admin', '$2b$10$rQZ8J7mV5X9P6YeN1wQ2eOH9W9W9W9W9W9W9W9W9W9W9W9W9W9W9W', 'admin');
+('admin', '$2b$10$K8Z7VlZ8DQB7GhP7LQpCLerK8P2kY7H6EwY7D7B7H7E7F7G7H7I7J7K', 'admin');
 
 -- Insert sample order for demonstration
 INSERT INTO orders (
+    tracking_id,
     customer_name,
-    customer_name_bn,
-    phone,
-    email,
-    address,
+    customer_phone,
+    customer_email,
     district,
-    postal_code,
-    order_items,
-    custom_instructions,
-    custom_instructions_bn,
+    thana,
+    address,
+    items,
+    subtotal,
+    delivery_charge,
+    total,
     payment_method,
-    payment_amount,
+    payment_number,
     status,
-    tracking_id
+    notes
 ) VALUES (
-    'John Doe',
-    'জন ডো',
+    'TRX-' || EXTRACT(epoch FROM NOW())::bigint,
+    'আমিনুল ইসলাম',
     '+8801712345678',
-    'john@example.com',
-    '123 Main Street, Gulshan',
+    'aminul@example.com',
     'dhaka',
-    '1212',
-    '[{"productId": "1", "quantity": 2, "customizations": {"text": "Love You Forever", "textBn": "তোমাকে চিরকাল ভালোবাসি"}}]'::jsonb,
-    'Please pack carefully',
-    'দয়া করে সাবধানে প্যাক করুন',
+    'gulshan',
+    '১২৩, মেইন স্ট্রিট, গুলশান-১, ঢাকা',
+    '[{"id": "1", "name": "Premium Love Mug", "quantity": 2, "price": 550, "customization": "Love You Forever"}]'::jsonb,
+    1100.00,
+    60.00,
+    1160.00,
     'bkash',
-    '1100',
+    '01712345678',
     'confirmed',
-    'TRX-' || EXTRACT(epoch FROM NOW())::bigint
+    'দয়া করে সাবধানে প্যাক করুন'
 );
 
 -- Verify data insertion

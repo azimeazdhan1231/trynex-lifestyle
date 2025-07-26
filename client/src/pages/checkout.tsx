@@ -28,7 +28,7 @@ interface CheckoutForm {
 
 export default function Checkout() {
   const { state: cartState, clearCart } = useCart();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   
   const [form, setForm] = useState<CheckoutForm>({
@@ -188,7 +188,7 @@ export default function Checkout() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-neutral mb-2">{t('checkout')}</h1>
+            <h1 className="text-3xl font-bold text-neutral mb-2">{language === 'bn' ? 'চেকআউট' : 'Checkout'}</h1>
             <p className="text-gray-600">আপনার অর্ডার সম্পন্ন করুন</p>
           </div>
 
@@ -199,12 +199,12 @@ export default function Checkout() {
                 {/* Customer Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t('customerInfo')}</CardTitle>
+                    <CardTitle>{language === 'bn' ? 'কাস্টমার তথ্য' : 'Customer Information'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="customerName">{t('name')} *</Label>
+                        <Label htmlFor="customerName">{language === 'bn' ? 'নাম' : 'Name'} *</Label>
                         <Input
                           id="customerName"
                           value={form.customerName}
@@ -213,7 +213,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="customerPhone">{t('phone')} *</Label>
+                        <Label htmlFor="customerPhone">{language === 'bn' ? 'ফোন নাম্বার' : 'Phone'} *</Label>
                         <Input
                           id="customerPhone"
                           type="tel"
@@ -225,7 +225,7 @@ export default function Checkout() {
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="customerEmail">{t('email')}</Label>
+                      <Label htmlFor="customerEmail">{language === 'bn' ? 'ইমেইল (ঐচ্ছিক)' : 'Email (Optional)'}</Label>
                       <Input
                         id="customerEmail"
                         type="email"
@@ -245,13 +245,13 @@ export default function Checkout() {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="district">{t('district')} *</Label>
+                        <Label htmlFor="district">{language === 'bn' ? 'জেলা' : 'District'} *</Label>
                         <Select
                           value={form.district}
                           onValueChange={(value) => handleInputChange('district', value)}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={t('selectDistrict')} />
+                            <SelectValue placeholder={language === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select District'} />
                           </SelectTrigger>
                           <SelectContent>
                             {districts.map((district) => (
@@ -263,14 +263,14 @@ export default function Checkout() {
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="thana">{t('thana')} *</Label>
+                        <Label htmlFor="thana">{language === 'bn' ? 'থানা' : 'Thana'} *</Label>
                         <Select
                           value={form.thana}
                           onValueChange={(value) => handleInputChange('thana', value)}
                           disabled={!form.district}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={t('selectThana')} />
+                            <SelectValue placeholder={language === 'bn' ? 'থানা নির্বাচন করুন' : 'Select Thana'} />
                           </SelectTrigger>
                           <SelectContent>
                             {thanas.map((thana) => (
@@ -283,7 +283,7 @@ export default function Checkout() {
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="address">{t('address')} *</Label>
+                      <Label htmlFor="address">{language === 'bn' ? 'ঠিকানা' : 'Address'} *</Label>
                       <Textarea
                         id="address"
                         value={form.address}
@@ -397,7 +397,7 @@ export default function Checkout() {
                   ) : (
                     <>
                       <i className="fas fa-check mr-2"></i>
-                      {t('placeOrder')}
+                      {language === 'bn' ? 'অর্ডার করুন' : 'Place Order'}
                     </>
                   )}
                 </Button>
@@ -408,7 +408,7 @@ export default function Checkout() {
             <div>
               <Card className="sticky top-8">
                 <CardHeader>
-                  <CardTitle>{t('orderSummary')}</CardTitle>
+                  <CardTitle>{language === 'bn' ? 'অর্ডার সারাংশ' : 'Order Summary'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -416,8 +416,15 @@ export default function Checkout() {
                       <div key={item.id} className="flex justify-between items-start">
                         <div className="flex-1">
                           <h4 className="font-semibold">{item.name}</h4>
-                          {item.customization && (
+                          {item.customization && typeof item.customization === 'string' && (
                             <p className="text-sm text-gray-600">{item.customization}</p>
+                          )}
+                          {item.customization && typeof item.customization === 'object' && (
+                            <p className="text-sm text-gray-600">
+                              {Object.entries(item.customization).map(([key, value]) => 
+                                `${key}: ${value}`
+                              ).join(', ')}
+                            </p>
                           )}
                           <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                         </div>
@@ -428,7 +435,7 @@ export default function Checkout() {
                     <Separator />
 
                     <div className="flex justify-between items-center font-bold text-lg">
-                      <span>{t('total')}:</span>
+                      <span>{language === 'bn' ? 'মোট' : 'Total'}:</span>
                       <span className="text-primary">৳{getTotalPrice()}</span>
                     </div>
 

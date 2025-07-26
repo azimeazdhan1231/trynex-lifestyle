@@ -27,19 +27,19 @@ export default function Admin() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [productForm, setProductForm] = useState<Partial<InsertProduct>>({
     name: '',
-    nameEn: '',
+    nameBn: '',
     description: '',
-    descriptionEn: '',
+    descriptionBn: '',
     price: '',
     category: '',
     features: [],
     image: '',
-    isActive: true,
+    inStock: true,
   });
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -78,11 +78,33 @@ export default function Admin() {
     enabled: isLoggedIn,
   });
 
+  // Create product mutation
+  const createProductMutation = useMutation({
+    mutationFn: async (product: Partial<InsertProduct>) => {
+      return apiRequest('POST', '/api/admin/products', product);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      setIsProductDialogOpen(false);
+      resetProductForm();
+      toast({
+        title: "সফল!",
+        description: "প্রোডাক্ট তৈরি হয়েছে",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "ত্রুটি!",
+        description: "প্রোডাক্ট তৈরি করতে ব্যর্থ",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Update order status mutation
-  const updateOrderMutation = useMutation({
+  const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      const response = await apiRequest('PUT', `/api/admin/orders/${orderId}/status`, { status });
-      return response.json();
+      return apiRequest('PUT', `/api/admin/orders/${orderId}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/orders'] });
@@ -91,130 +113,61 @@ export default function Admin() {
         description: "অর্ডার স্ট্যাটাস আপডেট হয়েছে",
       });
     },
-    onError: () => {
-      toast({
-        title: "ত্রুটি!",
-        description: "অর্ডার আপডেট করতে সমস্যা হয়েছে",
-        variant: "destructive",
-      });
-    },
   });
 
-  // Create/Update product mutation
-  const productMutation = useMutation({
-    mutationFn: async (productData: Partial<InsertProduct>) => {
-      const url = editingProduct 
-        ? `/api/admin/products/${editingProduct.id}`
-        : '/api/admin/products';
-      const method = editingProduct ? 'PUT' : 'POST';
-      
-      const response = await apiRequest(method, url, {
-        ...productData,
-        features: productData.features || [],
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-      setIsProductDialogOpen(false);
-      setEditingProduct(null);
-      setProductForm({
-        name: '',
-        nameEn: '',
-        description: '',
-        descriptionEn: '',
-        price: '',
-        category: '',
-        features: [],
-        image: '',
-        isActive: true,
-      });
-      toast({
-        title: "সফল!",
-        description: editingProduct ? "প্রোডাক্ট আপডেট হয়েছে" : "নতুন প্রোডাক্ট যোগ হয়েছে",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "ত্রুটি!",
-        description: "প্রোডাক্ট সেভ করতে সমস্যা হয়েছে",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Delete product mutation
-  const deleteProductMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const response = await apiRequest('DELETE', `/api/admin/products/${productId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-      toast({
-        title: "সফল!",
-        description: "প্রোডাক্ট ডিলিট হয়েছে",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "ত্রুটি!",
-        description: "প্রোডাক্ট ডিলিট করতে সমস্যা হয়েছে",
-        variant: "destructive",
-      });
-    },
-  });
+  const resetProductForm = () => {
+    setProductForm({
+      name: '',
+      nameBn: '',
+      description: '',
+      descriptionBn: '',
+      price: '',
+      category: '',
+      features: [],
+      image: '',
+      inStock: true,
+    });
+    setEditingProduct(null);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loginMutation.mutate(loginForm);
   };
 
-  const handleOrderStatusUpdate = (orderId: string, status: string) => {
-    updateOrderMutation.mutate({ orderId, status });
-  };
-
-  const handleProductSave = (e: React.FormEvent) => {
+  const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    productMutation.mutate(productForm);
+    createProductMutation.mutate(productForm);
   };
 
-  const handleEditProduct = (product: Product) => {
+  const editProduct = (product: Product) => {
     setEditingProduct(product);
     setProductForm({
-      name: product.name,
-      nameEn: product.nameEn,
-      description: product.description,
-      descriptionEn: product.descriptionEn,
-      price: product.price,
-      category: product.category,
-      features: product.features as string[],
-      image: product.image,
-      isActive: product.isActive,
+      name: product.name || '',
+      nameBn: product.nameBn || '',
+      description: product.description || '',
+      descriptionBn: product.descriptionBn || '',
+      price: product.price || '',
+      category: product.category || '',
+      features: product.features || [],
+      image: product.image || '',
+      inStock: product.inStock !== false,
     });
     setIsProductDialogOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      processing: 'bg-orange-100 text-orange-800',
-      ready: 'bg-green-100 text-green-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-emerald-100 text-emerald-800',
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: language === 'bn' ? 'অপেক্ষমাণ' : 'Pending', variant: 'secondary' as const },
+      confirmed: { label: language === 'bn' ? 'কনফার্ম' : 'Confirmed', variant: 'default' as const },
+      processing: { label: language === 'bn' ? 'প্রক্রিয়াধীন' : 'Processing', variant: 'default' as const },
+      ready: { label: language === 'bn' ? 'প্রস্তুত' : 'Ready', variant: 'default' as const },
+      shipped: { label: language === 'bn' ? 'পাঠানো হয়েছে' : 'Shipped', variant: 'default' as const },
+      delivered: { label: language === 'bn' ? 'ডেলিভার হয়েছে' : 'Delivered', variant: 'default' as const },
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bn-BD', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   if (!isLoggedIn) {
@@ -230,7 +183,6 @@ export default function Admin() {
                 <Label htmlFor="username">ইউজারনেম</Label>
                 <Input
                   id="username"
-                  type="text"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, username: e.target.value }))}
                   required
@@ -246,7 +198,11 @@ export default function Admin() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
                 {loginMutation.isPending ? 'লগইন হচ্ছে...' : 'লগইন'}
               </Button>
             </form>
@@ -257,289 +213,250 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-neutral">অ্যাডমিন প্যানেল</h1>
-              <p className="text-gray-600">স্বাগতম, {adminUser?.username}</p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsLoggedIn(false);
-                setAdminUser(null);
-              }}
-            >
-              লগআউট
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="container mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">অ্যাডমিন প্যানেল</h1>
+          <p className="text-gray-600">স্বাগতম, {adminUser?.username}</p>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="orders" className="space-y-6">
+        <Tabs defaultValue="orders" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="orders">অর্ডার ম্যানেজমেন্ট</TabsTrigger>
-            <TabsTrigger value="products">প্রোডাক্ট ম্যানেজমেন্ট</TabsTrigger>
+            <TabsTrigger value="orders">অর্ডার</TabsTrigger>
+            <TabsTrigger value="products">প্রোডাক্ট</TabsTrigger>
           </TabsList>
 
-          {/* Orders Tab */}
-          <TabsContent value="orders">
+          <TabsContent value="orders" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>সকল অর্ডার</CardTitle>
+                <CardTitle>সব অর্ডার</CardTitle>
               </CardHeader>
               <CardContent>
                 {ordersLoading ? (
                   <div className="text-center py-8">
-                    <i className="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-                    <p className="mt-2 text-gray-600">লোড হচ্ছে...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2">লোড হচ্ছে...</p>
                   </div>
-                ) : orders?.length === 0 ? (
-                  <div className="text-center py-8">
-                    <i className="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
-                    <p className="text-gray-500">কোন অর্ডার নেই</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ট্র্যাকিং আইডি</TableHead>
-                          <TableHead>কাস্টমার</TableHead>
-                          <TableHead>ফোন</TableHead>
-                          <TableHead>মোট পরিমাণ</TableHead>
-                          <TableHead>স্ট্যাটাস</TableHead>
-                          <TableHead>তারিখ</TableHead>
-                          <TableHead>অ্যাকশন</TableHead>
+                ) : orders && orders.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ট্র্যাকিং ID</TableHead>
+                        <TableHead>কাস্টমার</TableHead>
+                        <TableHead>ফোন</TableHead>
+                        <TableHead>মোট</TableHead>
+                        <TableHead>স্ট্যাটাস</TableHead>
+                        <TableHead>অ্যাকশন</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-mono">{order.trackingId}</TableCell>
+                          <TableCell>{order.customerName}</TableCell>
+                          <TableCell>{order.customerPhone}</TableCell>
+                          <TableCell>৳{order.total}</TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={order.status}
+                              onValueChange={(status) => 
+                                updateOrderStatusMutation.mutate({ orderId: order.id, status })
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">অপেক্ষমাণ</SelectItem>
+                                <SelectItem value="confirmed">কনফার্ম</SelectItem>
+                                <SelectItem value="processing">প্রক্রিয়াধীন</SelectItem>
+                                <SelectItem value="ready">প্রস্তুত</SelectItem>
+                                <SelectItem value="shipped">পাঠানো হয়েছে</SelectItem>
+                                <SelectItem value="delivered">ডেলিভার হয়েছে</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {orders?.map((order) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-medium">{order.trackingId}</TableCell>
-                            <TableCell>{order.customerName}</TableCell>
-                            <TableCell>{order.customerPhone}</TableCell>
-                            <TableCell>৳{order.totalAmount}</TableCell>
-                            <TableCell>
-                              <Badge className={getStatusColor(order.status || 'pending')}>
-                                {t(order.status || 'pending')}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{order.createdAt ? formatDate(order.createdAt.toString()) : 'N/A'}</TableCell>
-                            <TableCell>
-                              <Select
-                                value={order.status || 'pending'}
-                                onValueChange={(status) => handleOrderStatusUpdate(order.id, status)}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">অপেক্ষমাণ</SelectItem>
-                                  <SelectItem value="confirmed">কনফার্ম</SelectItem>
-                                  <SelectItem value="processing">প্রক্রিয়াধীন</SelectItem>
-                                  <SelectItem value="ready">প্রস্তুত</SelectItem>
-                                  <SelectItem value="shipped">পাঠানো হয়েছে</SelectItem>
-                                  <SelectItem value="delivered">ডেলিভার হয়েছে</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8">
+                    <p>কোন অর্ডার পাওয়া যায়নি</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Products Tab */}
-          <TabsContent value="products">
+          <TabsContent value="products" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">প্রোডাক্ট ম্যানেজমেন্ট</h2>
+              <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetProductForm}>নতুন প্রোডাক্ট যোগ করুন</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingProduct ? 'প্রোডাক্ট এডিট' : 'নতুন প্রোডাক্ট'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleProductSubmit} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">নাম (ইংরেজি)</Label>
+                        <Input
+                          id="name"
+                          value={productForm.name || ''}
+                          onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="nameBn">নাম (বাংলা)</Label>
+                        <Input
+                          id="nameBn"
+                          value={productForm.nameBn || ''}
+                          onChange={(e) => setProductForm(prev => ({ ...prev, nameBn: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="description">বিবরণ (ইংরেজি)</Label>
+                      <Textarea
+                        id="description"
+                        value={productForm.description || ''}
+                        onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="descriptionBn">বিবরণ (বাংলা)</Label>
+                      <Textarea
+                        id="descriptionBn"
+                        value={productForm.descriptionBn || ''}
+                        onChange={(e) => setProductForm(prev => ({ ...prev, descriptionBn: e.target.value }))}
+                      />
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="price">দাম</Label>
+                        <Input
+                          id="price"
+                          value={productForm.price || ''}
+                          onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="category">ক্যাটেগরি</Label>
+                        <Select
+                          value={productForm.category || ''}
+                          onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="ক্যাটেগরি নির্বাচন করুন" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mugs">মগ</SelectItem>
+                            <SelectItem value="tshirts">টি-শার্ট</SelectItem>
+                            <SelectItem value="keychains">কিচেইন</SelectItem>
+                            <SelectItem value="water-bottles">ওয়াটার বোতল</SelectItem>
+                            <SelectItem value="accessories">এক্সেসরিজ</SelectItem>
+                            <SelectItem value="home-decor">হোম ডেকোর</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="image">ইমেজ URL</Label>
+                      <Input
+                        id="image"
+                        value={productForm.image || ''}
+                        onChange={(e) => setProductForm(prev => ({ ...prev, image: e.target.value }))}
+                        placeholder="/api/placeholder/300/300"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end space-x-4">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsProductDialogOpen(false)}
+                      >
+                        বাতিল
+                      </Button>
+                      <Button 
+                        type="submit"
+                        disabled={createProductMutation.isPending}
+                      >
+                        {createProductMutation.isPending ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>প্রোডাক্ট ম্যানেজমেন্ট</CardTitle>
-                  <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => setEditingProduct(null)}>
-                        <i className="fas fa-plus mr-2"></i>
-                        নতুন প্রোডাক্ট
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingProduct ? 'প্রোডাক্ট এডিট করুন' : 'নতুন প্রোডাক্ট যোগ করুন'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleProductSave} className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="name">নাম (বাংলা)</Label>
-                            <Input
-                              id="name"
-                              value={productForm.name}
-                              onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="nameEn">নাম (ইংরেজি)</Label>
-                            <Input
-                              id="nameEn"
-                              value={productForm.nameEn}
-                              onChange={(e) => setProductForm(prev => ({ ...prev, nameEn: e.target.value }))}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="description">বর্ণনা (বাংলা)</Label>
-                          <Textarea
-                            id="description"
-                            value={productForm.description}
-                            onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="descriptionEn">বর্ণনা (ইংরেজি)</Label>
-                          <Textarea
-                            id="descriptionEn"
-                            value={productForm.descriptionEn}
-                            onChange={(e) => setProductForm(prev => ({ ...prev, descriptionEn: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="price">দাম</Label>
-                            <Input
-                              id="price"
-                              type="number"
-                              value={productForm.price}
-                              onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="category">ক্যাটেগরি</Label>
-                            <Select
-                              value={productForm.category}
-                              onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="ক্যাটেগরি নির্বাচন করুন" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="general">জেনারেল মগ</SelectItem>
-                                <SelectItem value="love">লাভ মগ</SelectItem>
-                                <SelectItem value="magic">ম্যাজিক মগ</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="image">ইমেজ URL</Label>
-                          <Input
-                            id="image"
-                            value={productForm.image}
-                            onChange={(e) => setProductForm(prev => ({ ...prev, image: e.target.value }))}
-                            placeholder="https://example.com/image.jpg"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="features">ফিচার (কমা দিয়ে আলাদা করুন)</Label>
-                          <Textarea
-                            id="features"
-                            value={(productForm.features as string[])?.join(', ') || ''}
-                            onChange={(e) => setProductForm(prev => ({ 
-                              ...prev, 
-                              features: e.target.value.split(',').map(f => f.trim()).filter(f => f) 
-                            }))}
-                            placeholder="কাস্টম ডিজাইন, উন্নত মানের সিরামিক, দীর্ঘস্থায়ী প্রিন্ট"
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsProductDialogOpen(false)}
-                          >
-                            বাতিল
-                          </Button>
-                          <Button type="submit" disabled={productMutation.isPending}>
-                            {productMutation.isPending ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                <CardTitle>সব প্রোডাক্ট</CardTitle>
               </CardHeader>
               <CardContent>
                 {productsLoading ? (
                   <div className="text-center py-8">
-                    <i className="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
-                    <p className="mt-2 text-gray-600">লোড হচ্ছে...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2">লোড হচ্ছে...</p>
                   </div>
-                ) : products?.length === 0 ? (
-                  <div className="text-center py-8">
-                    <i className="fas fa-box text-4xl text-gray-300 mb-4"></i>
-                    <p className="text-gray-500">কোন প্রোডাক্ট নেই</p>
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products?.map((product) => (
-                      <Card key={product.id}>
-                        <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold text-lg mb-2">
-                            {language === 'bn' ? product.name : product.nameEn}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-2">
-                            {language === 'bn' ? product.description : product.descriptionEn}
-                          </p>
-                          <div className="flex justify-between items-center mb-4">
-                            <span className="font-bold text-primary">৳{product.price}</span>
-                            <Badge variant={product.isActive ? "default" : "secondary"}>
-                              {product.isActive ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                ) : products && products.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>নাম</TableHead>
+                        <TableHead>ক্যাটেগরি</TableHead>
+                        <TableHead>দাম</TableHead>
+                        <TableHead>স্ট্যাটাস</TableHead>
+                        <TableHead>অ্যাকশন</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-semibold">{product.name}</div>
+                              <div className="text-sm text-gray-600">{product.nameBn}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{product.category}</TableCell>
+                          <TableCell>৳{product.price}</TableCell>
+                          <TableCell>
+                            <Badge variant={product.inStock ? "default" : "secondary"}>
+                              {product.inStock ? 'স্টকে আছে' : 'স্টক শেষ'}
                             </Badge>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="outline" 
                               size="sm"
-                              variant="outline"
-                              onClick={() => handleEditProduct(product)}
+                              onClick={() => editProduct(product)}
                             >
-                              <i className="fas fa-edit mr-1"></i>
                               এডিট
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => deleteProductMutation.mutate(product.id)}
-                              disabled={deleteProductMutation.isPending}
-                            >
-                              <i className="fas fa-trash mr-1"></i>
-                              ডিলিট
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8">
+                    <p>কোন প্রোডাক্ট পাওয়া যায়নি</p>
                   </div>
                 )}
               </CardContent>
