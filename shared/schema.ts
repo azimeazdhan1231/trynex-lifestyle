@@ -65,7 +65,7 @@ export const orderTimeline = pgTable("order_timeline", {
   orderId: text("order_id").references(() => orders.id).notNull(),
   status: text("status").notNull(),
   message: text("message"),
-  messageBn: text("message_bn"),
+  messageEn: text("message_en"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -83,27 +83,27 @@ export const adminUsers = pgTable("admin_users", {
 export const insertProductSchema = createInsertSchema(products);
 export const selectProductSchema = createSelectSchema(products);
 export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type SelectProduct = z.infer<typeof selectProductSchema>;
+export type Product = typeof products.$inferSelect;
 
 export const insertOrderSchema = createInsertSchema(orders);
 export const selectOrderSchema = createSelectSchema(orders);
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
-export type SelectOrder = z.infer<typeof selectOrderSchema>;
+export type Order = typeof orders.$inferSelect;
 
 export const insertCustomDesignSchema = createInsertSchema(customDesigns);
 export const selectCustomDesignSchema = createSelectSchema(customDesigns);
 export type InsertCustomDesign = z.infer<typeof insertCustomDesignSchema>;
-export type SelectCustomDesign = z.infer<typeof selectCustomDesignSchema>;
+export type CustomDesign = typeof customDesigns.$inferSelect;
 
 export const insertOrderTimelineSchema = createInsertSchema(orderTimeline);
 export const selectOrderTimelineSchema = createSelectSchema(orderTimeline);
 export type InsertOrderTimeline = z.infer<typeof insertOrderTimelineSchema>;
-export type SelectOrderTimeline = z.infer<typeof selectOrderTimelineSchema>;
+export type OrderTimeline = typeof orderTimeline.$inferSelect;
 
 export const insertAdminUserSchema = createInsertSchema(adminUsers);
 export const selectAdminUserSchema = createSelectSchema(adminUsers);
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
-export type SelectAdminUser = z.infer<typeof selectAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
 
 // Product categories for the expanded catalog
 export const PRODUCT_CATEGORIES = {

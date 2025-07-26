@@ -44,10 +44,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all products
   app.get("/api/products", async (req, res) => {
     try {
+      console.log("Fetching products...");
       const products = await storage.getProducts();
+      console.log("Products fetched:", products.length);
       res.json(products);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products" });
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products", error: (error as Error).message });
     }
   });
 
