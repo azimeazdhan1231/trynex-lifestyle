@@ -95,7 +95,6 @@ export default function Products() {
           }
         </p>
       </div>
-
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -165,7 +164,6 @@ export default function Products() {
           </div>
         </div>
       </div>
-
       {/* Products Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -193,7 +191,7 @@ export default function Products() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 font-bold">
           {filteredProducts.map((product) => (
             <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300" data-testid={`card-product-${product.id}`}>
               <div className="relative overflow-hidden rounded-t-lg">
@@ -275,7 +273,6 @@ export default function Products() {
           ))}
         </div>
       )}
-
       {/* Load More */}
       {filteredProducts.length > 0 && (
         <div className="text-center mt-12">

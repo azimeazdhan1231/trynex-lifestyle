@@ -207,7 +207,16 @@ class MemoryStorage implements IStorage {
   private orders: Order[] = [];
   private customDesigns: CustomDesign[] = [];
   private orderTimelineEntries: OrderTimeline[] = [];
-  private admins: AdminUser[] = [];
+  private admins: AdminUser[] = [
+    {
+      id: 'admin-1',
+      username: 'admin',
+      password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // hashed 'admin123'
+      role: 'admin',
+      isActive: true,
+      createdAt: new Date(),
+    }
+  ];
   private promoOffers: PromoOffer[] = [
     {
       id: 'promo-1',
