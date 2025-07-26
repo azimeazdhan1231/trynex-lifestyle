@@ -241,8 +241,8 @@ class MemoryStorage implements IStorage {
     return this.orders.find(o => o.id === id);
   }
 
-  async getOrderByTrackingId(trackingId: string): Promise<Order | undefined> {
-    return this.orders.find(o => o.trackingId === trackingId);
+  async getOrderByTrackingId(trackingId: string): Promise<Order | null> {
+    return this.orders.find(o => o.trackingId === trackingId) || null;
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {

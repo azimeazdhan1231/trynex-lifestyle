@@ -71,13 +71,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders", upload.single('paymentScreenshot'), async (req, res) => {
     try {
       const orderData = JSON.parse(req.body.orderData);
-      const validatedOrder = insertOrderSchema.parse(orderData);
+      
+      // Generate tracking ID
+      const trackingId = 'TRX' + Date.now().toString().slice(-6) + Math.random().toString(36).substr(2, 3).toUpperCase();
+      
+      // Calculate totals
+      const items = orderData.items || [];
+      const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+      const deliveryCharge = 60;
+      const total = subtotal + deliveryCharge;
+      
+      // Prepare complete order data
+      const completeOrderData = {
+        ...orderData,
+        trackingId,
+        subtotal: subtotal.toString(),
+        total: total.toString(),
+        status: 'pending',
+        items: JSON.stringify(items)
+      };
+      
+      const validatedOrder = insertOrderSchema.parse(completeOrderData);
       
       if (req.file) {
         validatedOrder.paymentScreenshot = `/uploads/${req.file.filename}`;
       }
       
       const order = await storage.createOrder(validatedOrder);
+      
+      // Create initial order timeline entry
+      await storage.createOrderTimeline({
+        orderId: order.id,
+        status: 'pending',
+        message: 'অর্ডার গ্রহণ করা হয়েছে এবং যাচাই করা হচ্ছে',
+        messageEn: 'Order received and being verified'
+      });
       
       // Create custom designs if provided
       if (req.body.customDesigns) {
