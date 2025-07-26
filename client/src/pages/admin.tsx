@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import type { Order, Product, InsertProduct } from '@shared/schema';
+import type { Order, Product, InsertProduct, PromoOffer } from '@shared/schema';
 
 interface AdminUser {
   id: string;
@@ -38,6 +38,19 @@ export default function Admin() {
   });
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [promoOfferForm, setPromoOfferForm] = useState({
+    title: '',
+    titleBn: '',
+    description: '',
+    descriptionBn: '',
+    discountPercentage: 10,
+    validUntil: '',
+    image: '',
+    isActive: true,
+    showAsPopup: false,
+  });
+  const [isPromoOfferDialogOpen, setIsPromoOfferDialogOpen] = useState(false);
+  const [editingPromoOffer, setEditingPromoOffer] = useState<PromoOffer | null>(null);
   
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -72,10 +85,19 @@ export default function Admin() {
     enabled: isLoggedIn,
   });
 
-  // Fetch products
+  // Fetch products with real-time updates
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/products'],
     enabled: isLoggedIn,
+    refetchInterval: 2000, // Refetch every 2 seconds for real-time updates
+    refetchIntervalInBackground: false,
+  });
+
+  // Fetch promo offers
+  const { data: promoOffers = [], isLoading: promoOffersLoading } = useQuery<PromoOffer[]>({
+    queryKey: ['/api/admin/promo-offers'],
+    enabled: isLoggedIn,
+    refetchInterval: 3000, // Refetch every 3 seconds
   });
 
   // Create product mutation
@@ -115,6 +137,39 @@ export default function Admin() {
     },
   });
 
+  // Promo offer mutations
+  const createPromoOfferMutation = useMutation({
+    mutationFn: async (offerData: any) => {
+      return apiRequest('POST', '/api/admin/promo-offers', {
+        ...offerData,
+        validUntil: new Date(offerData.validUntil).toISOString(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/promo-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/promo-offers'] });
+      setIsPromoOfferDialogOpen(false);
+      resetPromoOfferForm();
+      toast({
+        title: "সফল!",
+        description: "নতুন অফার তৈরি হয়েছে",
+      });
+    },
+  });
+
+  const deletePromoOfferMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      return apiRequest('DELETE', `/api/admin/promo-offers/${offerId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/promo-offers'] });
+      toast({
+        title: "সফল!",
+        description: "অফার ডিলিট হয়েছে",
+      });
+    },
+  });
+
   const resetProductForm = () => {
     setProductForm({
       name: '',
@@ -130,6 +185,21 @@ export default function Admin() {
     setEditingProduct(null);
   };
 
+  const resetPromoOfferForm = () => {
+    setPromoOfferForm({
+      title: '',
+      titleBn: '',
+      description: '',
+      descriptionBn: '',
+      discountPercentage: 10,
+      validUntil: '',
+      image: '',
+      isActive: true,
+      showAsPopup: false,
+    });
+    setEditingPromoOffer(null);
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     loginMutation.mutate(loginForm);
@@ -138,6 +208,11 @@ export default function Admin() {
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createProductMutation.mutate(productForm);
+  };
+
+  const handlePromoOfferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createPromoOfferMutation.mutate(promoOfferForm);
   };
 
   const editProduct = (product: Product) => {
@@ -221,9 +296,10 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="orders">অর্ডার</TabsTrigger>
             <TabsTrigger value="products">প্রোডাক্ট</TabsTrigger>
+            <TabsTrigger value="offers">প্রমো অফার</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders" className="space-y-4">
@@ -457,6 +533,195 @@ export default function Admin() {
                 ) : (
                   <div className="text-center py-8">
                     <p>কোন প্রোডাক্ট পাওয়া যায়নি</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Promo Offers Tab */}
+          <TabsContent value="offers" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">প্রমো অফার ম্যানেজমেন্ট</h2>
+              <Dialog open={isPromoOfferDialogOpen} onOpenChange={setIsPromoOfferDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetPromoOfferForm}>নতুন অফার যোগ করুন</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>নতুন প্রমো অফার</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handlePromoOfferSubmit} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="offerTitle">শিরোনাম (ইংরেজি)</Label>
+                        <Input
+                          id="offerTitle"
+                          value={promoOfferForm.title}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, title: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="offerTitleBn">শিরোনাম (বাংলা)</Label>
+                        <Input
+                          id="offerTitleBn"
+                          value={promoOfferForm.titleBn}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, titleBn: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="offerDescription">বিবরণ (ইংরেজি)</Label>
+                        <Textarea
+                          id="offerDescription"
+                          value={promoOfferForm.description}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, description: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="offerDescriptionBn">বিবরণ (বাংলা)</Label>
+                        <Textarea
+                          id="offerDescriptionBn"
+                          value={promoOfferForm.descriptionBn}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, descriptionBn: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="discountPercentage">ছাড় (%)</Label>
+                        <Input
+                          id="discountPercentage"
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={promoOfferForm.discountPercentage}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, discountPercentage: parseInt(e.target.value) }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="validUntil">মেয়াদ শেষ</Label>
+                        <Input
+                          id="validUntil"
+                          type="datetime-local"
+                          value={promoOfferForm.validUntil}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, validUntil: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="offerImage">ইমেজ URL</Label>
+                        <Input
+                          id="offerImage"
+                          value={promoOfferForm.image}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, image: e.target.value }))}
+                          placeholder="/api/placeholder/400/200"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-4 items-center">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="isActive"
+                          checked={promoOfferForm.isActive}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                        />
+                        <Label htmlFor="isActive">সক্রিয়</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="showAsPopup"
+                          checked={promoOfferForm.showAsPopup}
+                          onChange={(e) => setPromoOfferForm(prev => ({ ...prev, showAsPopup: e.target.checked }))}
+                        />
+                        <Label htmlFor="showAsPopup">পপআপ হিসেবে দেখান</Label>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-4">
+                      <Button type="button" variant="outline" onClick={() => setIsPromoOfferDialogOpen(false)}>
+                        বাতিল
+                      </Button>
+                      <Button type="submit" disabled={createPromoOfferMutation.isPending}>
+                        {createPromoOfferMutation.isPending ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>সব প্রমো অফার</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {promoOffersLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2">লোড হচ্ছে...</p>
+                  </div>
+                ) : promoOffers && promoOffers.length > 0 ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {promoOffers.map((offer) => (
+                      <Card key={offer.id}>
+                        <CardContent className="p-4">
+                          {offer.image && (
+                            <img
+                              src={offer.image}
+                              alt={offer.title}
+                              className="w-full h-32 object-cover rounded-lg mb-4"
+                            />
+                          )}
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-semibold">{offer.title}</h3>
+                            <div className="flex gap-2">
+                              <Badge variant={offer.isActive ? "default" : "secondary"}>
+                                {offer.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                              </Badge>
+                              {offer.showAsPopup && (
+                                <Badge variant="outline">পপআপ</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{offer.titleBn}</p>
+                          <p className="text-sm mb-3">{offer.description}</p>
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="font-bold text-lg text-green-600">
+                              {offer.discountPercentage}% ছাড়
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              মেয়াদ: {new Date(offer.validUntil).toLocaleDateString('bn-BD')}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deletePromoOfferMutation.mutate(offer.id)}
+                              disabled={deletePromoOfferMutation.isPending}
+                            >
+                              ডিলিট
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p>কোন প্রমো অফার পাওয়া যায়নি</p>
                   </div>
                 )}
               </CardContent>
