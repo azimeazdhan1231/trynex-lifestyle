@@ -385,12 +385,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/promo-offers/:id", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`Updating promo offer ${id} with data:`, req.body);
       const updated = await storage.updatePromoOffer(id, req.body);
       if (!updated) {
         return res.status(404).json({ message: "Promo offer not found" });
       }
-      res.json({ message: "Promo offer updated successfully" });
+      console.log(`Promo offer updated successfully:`, updated);
+      res.json(updated);
     } catch (error) {
+      console.error('Error updating promo offer:', error);
       res.status(500).json({ message: "Failed to update promo offer" });
     }
   });

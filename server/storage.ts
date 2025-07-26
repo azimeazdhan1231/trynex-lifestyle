@@ -697,13 +697,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPromoOffer(offer: InsertPromoOffer): Promise<PromoOffer> {
-    const result = await db.insert(promoOffers).values(offer).returning();
+    // Ensure validUntil is a proper Date object
+    const insertData = { ...offer };
+    if (insertData.validUntil && typeof insertData.validUntil === 'string') {
+      insertData.validUntil = new Date(insertData.validUntil);
+    }
+    
+    const result = await db.insert(promoOffers).values(insertData).returning();
     return result[0];
   }
 
   async updatePromoOffer(id: string, offer: Partial<InsertPromoOffer>): Promise<PromoOffer | undefined> {
-    const result = await db.update(promoOffers).set(offer).where(eq(promoOffers.id, id)).returning();
-    return result[0];
+    console.log(`Database: Updating promo offer ${id} with:`, offer);
+    
+    try {
+      // Create a clean update object with proper type conversions
+      const updateData: any = {};
+      
+      // Copy all fields except validUntil first
+      Object.keys(offer).forEach(key => {
+        if (key !== 'validUntil') {
+          updateData[key] = offer[key as keyof InsertPromoOffer];
+        }
+      });
+      
+      // Handle validUntil separately with proper date conversion
+      if (offer.validUntil) {
+        if (typeof offer.validUntil === 'string') {
+          updateData.validUntil = new Date(offer.validUntil);
+        } else {
+          updateData.validUntil = offer.validUntil;
+        }
+        
+        // Validate the date
+        if (isNaN(updateData.validUntil.getTime())) {
+          throw new Error('Invalid date format for validUntil');
+        }
+      }
+      
+      console.log(`Database: Converted update data:`, updateData);
+      
+      const result = await db.update(promoOffers).set(updateData).where(eq(promoOffers.id, id)).returning();
+      console.log(`Database: Updated promo offer result:`, result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('Error in updatePromoOffer:', error);
+      throw error;
+    }
   }
 
   async deletePromoOffer(id: string): Promise<boolean> {

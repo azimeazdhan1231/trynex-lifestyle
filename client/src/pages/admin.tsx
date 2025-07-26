@@ -145,10 +145,23 @@ export default function Admin() {
         : '/api/admin/promo-offers';
       const method = editingPromoOffer ? 'PUT' : 'POST';
       
-      return apiRequest(method, url, {
-        ...offerData,
-        validUntil: new Date(offerData.validUntil).toISOString(),
-      });
+      // Prepare data for submission
+      const submitData = { ...offerData };
+      
+      // Handle date conversion properly
+      if (submitData.validUntil) {
+        // If it's already a string in ISO format, keep it
+        if (typeof submitData.validUntil === 'string') {
+          // Ensure it's in the right format
+          submitData.validUntil = new Date(submitData.validUntil).toISOString();
+        } else {
+          submitData.validUntil = new Date(submitData.validUntil).toISOString();
+        }
+      }
+      
+      console.log(`Submitting ${method} to ${url} with data:`, submitData);
+      
+      return apiRequest(method, url, submitData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promo-offers'] });
@@ -159,6 +172,14 @@ export default function Admin() {
       toast({
         title: "সফল!",
         description: editingPromoOffer ? "অফার আপডেট হয়েছে" : "নতুন অফার তৈরি হয়েছে",
+      });
+    },
+    onError: (error) => {
+      console.error('Promo offer mutation error:', error);
+      toast({
+        title: "ত্রুটি!",
+        description: "অফার সেভ করতে সমস্যা হয়েছে",
+        variant: "destructive",
       });
     },
   });
