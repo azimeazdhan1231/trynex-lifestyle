@@ -1,6 +1,18 @@
-node_modules
-dist
+node_modules/
+.env
+dist/
+uploads/*.jpg
+uploads/*.png
+uploads/*.jpeg
+*.log
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+.vscode/
+.idea/
+.replit
+replit.nix
+
+# Keep some upload examples but ignore user uploads
+!uploads/.gitkeep
+
+# Keep essential deployment files
+!SIMPLE_DEPLOYMENT_GUIDE.md
