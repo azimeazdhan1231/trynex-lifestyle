@@ -58,28 +58,39 @@ nginx -v
 
 ## Step 3: Setup PostgreSQL Database
 
-### 3.1 Configure PostgreSQL
+**Important:** Follow the detailed PostgreSQL setup guide in `POSTGRESQL_SETUP_GUIDE.md` for complete step-by-step instructions.
+
+### 3.1 Quick Setup Commands
 ```bash
-# Switch to postgres user
+# Install PostgreSQL
+sudo apt install postgresql postgresql-contrib -y
+
+# Access PostgreSQL as admin
 sudo -u postgres psql
 
-# Create database and user
+# Create database and user (copy one by one)
 CREATE DATABASE trynex_db;
-CREATE USER trynex_user WITH ENCRYPTED PASSWORD 'your_secure_password_here';
+CREATE USER trynex_user WITH ENCRYPTED PASSWORD 'YourSecurePassword123!';
 GRANT ALL PRIVILEGES ON DATABASE trynex_db TO trynex_user;
 ALTER USER trynex_user CREATEDB;
 \quit
 
-# Configure PostgreSQL for remote connections
+# Configure for local connections
 sudo nano /etc/postgresql/14/main/postgresql.conf
-# Find and uncomment: listen_addresses = '*'
+# Find: #listen_addresses = 'localhost'
+# Change to: listen_addresses = '*'
 
-sudo nano /etc/postgresql/14/main/pg_hba.conf
-# Add: host all all 0.0.0.0/0 md5
+sudo nano /etc/postgresql/14/main/pg_hba.conf  
+# Add at end: host all all 127.0.0.1/32 md5
 
 # Restart PostgreSQL
 sudo systemctl restart postgresql
 sudo systemctl enable postgresql
+```
+
+**Your Database URL will be:**
+```
+postgresql://trynex_user:YourSecurePassword123!@localhost:5432/trynex_db
 ```
 
 ### 3.2 Test Database Connection
