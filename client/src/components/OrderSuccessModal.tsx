@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Copy, Facebook, Phone, Mail } from 'lucide-react';
@@ -44,6 +44,12 @@ export default function OrderSuccessModal({
           <DialogTitle className="text-2xl font-bold text-green-600">
             {language === 'bn' ? '🎉 অর্ডার সফল!' : '🎉 Order Success!'}
           </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            {language === 'bn' 
+              ? 'আপনার অর্ডার সফলভাবে গৃহীত হয়েছে এবং প্রক্রিয়াকরণ শুরু হয়েছে।'
+              : 'Your order has been successfully received and processing has begun.'
+            }
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

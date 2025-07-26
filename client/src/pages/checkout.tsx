@@ -48,7 +48,6 @@ export default function Checkout() {
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [designFiles, setDesignFiles] = useState<File[]>([]);
   const [orderSuccess, setOrderSuccess] = useState<{ trackingId: string; orderId: string; customerName: string; totalAmount: string } | null>(null);
-  const [isOrderSuccessModalOpen, setIsOrderSuccessModalOpen] = useState(false);
 
   const districts = getDistricts();
   const thanas = form.district ? getThanas(form.district) : [];
@@ -74,7 +73,6 @@ export default function Checkout() {
         customerName: form.customerName,
         totalAmount: totalAmount
       });
-      setIsOrderSuccessModalOpen(true);
       clearCart();
       toast({
         title: language === 'bn' ? "সফল!" : "Success!",
@@ -467,8 +465,8 @@ export default function Checkout() {
       {/* Order Success Modal */}
       {orderSuccess && (
         <OrderSuccessModal
-          isOpen={isOrderSuccessModalOpen}
-          onOpenChange={setIsOrderSuccessModalOpen}
+          isOpen={!!orderSuccess}
+          onOpenChange={(open) => !open && setOrderSuccess(null)}
           orderId={orderSuccess.orderId}
           trackingId={orderSuccess.trackingId}
           customerName={orderSuccess.customerName}
