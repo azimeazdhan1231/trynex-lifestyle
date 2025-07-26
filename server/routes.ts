@@ -295,10 +295,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(401).json({ message: "Invalid credentials" });
   });
 
-  // Admin: Get all orders
+  // Admin: Get all orders with real-time support
   app.get("/api/admin/orders", async (req, res) => {
     try {
       const orders = await storage.getOrders();
+      
+      // Add CORS headers for real-time polling
+      res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.header('Pragma', 'no-cache');
+      res.header('Expires', '0');
+      
       res.json(orders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch orders" });

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import OrderSuccessModal from '@/components/OrderSuccessModal';
+import OrderSuccessModal from '@/components/ui/order-success-modal';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +47,7 @@ export default function Checkout() {
 
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [designFiles, setDesignFiles] = useState<File[]>([]);
-  const [orderSuccess, setOrderSuccess] = useState<{ trackingId: string; orderId: string; customerName: string; totalAmount: string } | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<{ trackingId: string; orderId: string; customerName: string; totalAmount: number } | null>(null);
 
   const districts = getDistricts();
   const thanas = form.district ? getThanas(form.district) : [];
@@ -66,7 +66,7 @@ export default function Checkout() {
       return response.json();
     },
     onSuccess: (order) => {
-      const totalAmount = cartState.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toString();
+      const totalAmount = cartState.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       setOrderSuccess({ 
         trackingId: order.trackingId, 
         orderId: order.id,

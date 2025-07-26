@@ -11,10 +11,10 @@ import CartSidebar from "@/components/layout/CartSidebar";
 import Home from "@/pages/enhanced-home";
 import Products from "@/pages/products";
 import Admin from "@/pages/admin";
-import ComprehensiveAdmin from "@/pages/comprehensive-admin";
+import EnhancedAdmin from "@/pages/enhanced-admin";
 import Checkout from "@/pages/checkout";
 import CustomDesign from "@/pages/custom-design";
-import OrderTracking from "@/pages/order-tracking";
+import TrackOrder from "@/pages/track-order";
 import Contact from "@/pages/contact";
 import Wishlist from "@/pages/wishlist";
 import TermsConditions from "@/pages/terms-conditions";
@@ -34,10 +34,10 @@ function Router() {
           <Route path="/wishlist" component={Wishlist} />
           <Route path="/terms-conditions" component={TermsConditions} />
           <Route path="/return-policy" component={ReturnPolicy} />
-          <Route path="/admin" component={ComprehensiveAdmin} />
+          <Route path="/admin" component={EnhancedAdmin} />
           <Route path="/checkout" component={Checkout} />
-          <Route path="/track" component={OrderTracking} />
-          <Route path="/order-tracking" component={OrderTracking} />
+          <Route path="/track" component={TrackOrder} />
+          <Route path="/order-tracking" component={TrackOrder} />
           <Route component={NotFound} />
         </Switch>
       </main>
