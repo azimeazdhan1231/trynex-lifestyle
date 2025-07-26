@@ -1,0 +1,172 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 17:00:22 UTC 2025
+
+  System load:  0.08              Temperature:           -273.1 C
+  Usage of /:   48.1% of 6.71GB   Processes:             118
+  Memory usage: 30%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 16:50:21 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ curl -sSL https://raw.githubusercontent.com/azimeazdhan1231/trynex-lifestyle/main/EC2_DEPLOYMENT_SCRIPT.sh | bash
+🚀 Starting deployment to EC2 (16.170.250.199) with Supabase database
+Cloning into 'trynex-lifestyle'...
+remote: Enumerating objects: 567, done.
+remote: Counting objects: 100% (567/567), done.
+remote: Compressing objects: 100% (281/281), done.
+remote: Total 567 (delta 295), reused 550 (delta 278), pack-reused 0 (from 0)
+Receiving objects: 100% (567/567), 2.49 MiB | 23.60 MiB/s, done.
+Resolving deltas: 100% (295/295), done.
+✅ Environment configured
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 497 packages, and audited 498 packages in 10s
+
+67 packages are looking for funding
+  run `npm fund` for details
+
+11 vulnerabilities (3 low, 8 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+✅ Dependencies installed
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/ubuntu/trynex-lifestyle/drizzle.config.ts'
+Using 'pg' driver for database querying
+[⡿] Pulling schema from database...
+error: Tenant or user not found
+    at /home/ubuntu/trynex-lifestyle/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.query (/home/ubuntu/trynex-lifestyle/node_modules/drizzle-kit/bin.cjs:66575:26)
+    at async fromDatabase2 (/home/ubuntu/trynex-lifestyle/node_modules/drizzle-kit/bin.cjs:18700:25) {
+  length: 52,
+  severity: 'FATAL',
+  code: 'XX000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+✅ Database schema pushed to Supabase
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+✓ 1847 modules transformed.
+../dist/public/index.html                   0.46 kB │ gzip:   0.31 kB
+../dist/public/assets/index-4Ady8WjF.css   86.43 kB │ gzip:  14.44 kB
+../dist/public/assets/index-DY1prU0P.js   600.64 kB │ gzip: 178.23 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 7.88s
+
+  dist/index.js  63.3kb
+
+⚡ Done in 27ms
+✅ Application built
+✅ Server started
+✅ Server is responding
+📦 Populating Bengali products in Supabase database...
+📦 Populate result: {"message":"Failed to populate sample data"}
+server {
+    listen 80;
+    server_name 16.170.250.199 _;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # Serve React frontend
+    location / {
+        root /home/ubuntu/trynex-lifestyle/dist/public;
+        try_files $uri $uri/ /index.html;
+        
+        # Cache static assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            add_header Cache-Control "public, max-age=31536000";
+        }
+    }
+    
+    # Proxy API requests to backend
+    location /api/ {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # No caching for API
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    }
+    
+    # File uploads
+    location /uploads/ {
+        root /home/ubuntu/trynex-lifestyle;
+        add_header Cache-Control "public, max-age=86400";
+    }
+}
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+✅ Nginx configured and reloaded
+
+🔍 Testing deployment...
+❌ Website not accessible
+✅ API is working
+📦 Products in database: 5
+
+🎉 DEPLOYMENT COMPLETE!
+🌐 Website: http://16.170.250.199
+🔧 Admin Panel: http://16.170.250.199/admin (admin/admin123)
+📊 Server logs: tail -f /home/ubuntu/server.log
+📊 Nginx logs: sudo tail -f /var/log/nginx/error.log
+ubuntu     35454  0.9  5.5 1091728 52372 pts/0   Sl+  17:00   0:00 npm run start
+ubuntu     35466  0.0  0.1   2800  1664 pts/0    S+   17:00   0:00 sh -c NODE_ENV=production node dist/index.js
+ubuntu     35467  3.8  9.8 12060192 92216 pts/0  Sl+  17:00   0:00 node dist/index.js
+✅ Server processes running above
+ubuntu@ip-172-31-45-165:~$ 

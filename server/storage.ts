@@ -32,7 +32,7 @@ const connectionString = process.env.DATABASE_URL || "postgresql://postgres:user
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
-let useMemoryStorage = false; // Use database storage by default
+let useMemoryStorage = process.env.USE_MEMORY_STORAGE === 'true' || false; // Use database storage by default unless forced
 
 try {
   const client = postgres(connectionString, {
