@@ -54,18 +54,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="container mx-auto px-4">
-        {/* Top Bar with Contact Info and Language Toggle */}
-        <div className="hidden md:flex justify-between items-center py-2 text-sm border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center space-x-4 text-gray-600 dark:text-gray-400">
-            <div className="flex items-center space-x-1">
-              <Phone className="h-4 w-4" />
-              <span>+880 1XXX-XXXXXX</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Package className="h-4 w-4" />
-              <span>{language === 'bn' ? 'সারা বাংলাদেশে ফ্রি ডেলিভারি' : 'Free Delivery Nationwide'}</span>
-            </div>
-          </div>
+        {/* Language Toggle Only */}
+        <div className="hidden md:flex justify-end items-center py-2 text-sm border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertCustomDesignSchema, insertOrderTimelineSchema } from "@shared/schema";
+import { insertOrderSchema, insertCustomDesignSchema, insertOrderTimelineSchema, insertPromoOfferSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -353,6 +353,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to create admin user" });
+    }
+  });
+
+  // Search products with YouTube-like algorithm (matching query against multiple fields)
+  app.get("/api/products/search/:query", async (req, res) => {
+    try {
+      const q = req.params.query;
+      if (!q || typeof q !== 'string') {
+        return res.json([]);
+      }
+      
+      const allProducts = await storage.getProducts();
+      const query = q.toLowerCase().trim();
+      
+      // Score-based search algorithm like YouTube
+      const scoredProducts = allProducts.map(product => {
+        let score = 0;
+        
+        // Exact matches get highest score
+        if (product.name.toLowerCase().includes(query)) score += 10;
+        if (product.nameBn.toLowerCase().includes(query)) score += 10;
+        if (product.description?.toLowerCase().includes(query)) score += 8;
+        if (product.descriptionBn?.toLowerCase().includes(query)) score += 8;
+        if (product.category.toLowerCase().includes(query)) score += 6;
+        if (product.subcategory?.toLowerCase().includes(query)) score += 6;
+        
+        // Tags and features matching
+        product.tags?.forEach(tag => {
+          if (tag.toLowerCase().includes(query)) score += 5;
+        });
+        
+        product.features?.forEach(feature => {
+          if (feature.toLowerCase().includes(query)) score += 3;
+        });
+        
+        product.featuresBn?.forEach(feature => {
+          if (feature.toLowerCase().includes(query)) score += 3;
+        });
+        
+        // Partial word matching
+        const words = query.split(' ');
+        words.forEach(word => {
+          if (word.length > 2) {
+            if (product.name.toLowerCase().includes(word)) score += 2;
+            if (product.nameBn.toLowerCase().includes(word)) score += 2;
+          }
+        });
+        
+        return { ...product, searchScore: score };
+      });
+      
+      // Filter and sort by score
+      const results = scoredProducts
+        .filter(p => p.searchScore > 0)
+        .sort((a, b) => b.searchScore - a.searchScore)
+        .slice(0, 20); // Return top 20 results
+        
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
+  // Promo Offers API
+  app.get("/api/promo-offers", async (req, res) => {
+    try {
+      const offers = await storage.getActivePromoOffers();
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch promo offers" });
+    }
+  });
+
+  app.get("/api/promo-offers/popup", async (req, res) => {
+    try {
+      const offers = await storage.getPopupPromoOffers();
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch popup offers" });
+    }
+  });
+
+  // Admin: Promo Offers Management
+  app.get("/api/admin/promo-offers", async (req, res) => {
+    try {
+      const offers = await storage.getPromoOffers();
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch promo offers" });
+    }
+  });
+
+  app.post("/api/admin/promo-offers", async (req, res) => {
+    try {
+      const offer = await storage.createPromoOffer(req.body);
+      res.json(offer);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid promo offer data" });
+    }
+  });
+
+  app.put("/api/admin/promo-offers/:id", async (req, res) => {
+    try {
+      const offer = await storage.updatePromoOffer(req.params.id, req.body);
+      if (!offer) {
+        return res.status(404).json({ message: "Promo offer not found" });
+      }
+      res.json(offer);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid promo offer data" });
+    }
+  });
+
+  app.delete("/api/admin/promo-offers/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePromoOffer(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Promo offer not found" });
+      }
+      res.json({ message: "Promo offer deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete promo offer" });
+    }
+  });
+
+  // Wishlist API
+  app.get("/api/wishlist/:userId", async (req, res) => {
+    try {
+      const wishlist = await storage.getWishlist(req.params.userId);
+      res.json(wishlist);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch wishlist" });
+    }
+  });
+
+  app.post("/api/wishlist/:userId/:productId", async (req, res) => {
+    try {
+      const wishlistItem = await storage.addToWishlist(req.params.userId, req.params.productId);
+      res.json(wishlistItem);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add to wishlist" });
+    }
+  });
+
+  app.delete("/api/wishlist/:userId/:productId", async (req, res) => {
+    try {
+      const success = await storage.removeFromWishlist(req.params.userId, req.params.productId);
+      if (!success) {
+        return res.status(404).json({ message: "Wishlist item not found" });
+      }
+      res.json({ message: "Removed from wishlist" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove from wishlist" });
+    }
+  });
+
+  app.get("/api/wishlist/:userId/:productId/check", async (req, res) => {
+    try {
+      const isInWishlist = await storage.isInWishlist(req.params.userId, req.params.productId);
+      res.json({ inWishlist: isInWishlist });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check wishlist" });
     }
   });
 

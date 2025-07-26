@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import OrderSuccessModal from '@/components/OrderSuccessModal';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -46,7 +47,8 @@ export default function Checkout() {
 
   const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [designFiles, setDesignFiles] = useState<File[]>([]);
-  const [orderSuccess, setOrderSuccess] = useState<{ trackingId: string; orderId: string } | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<{ trackingId: string; orderId: string; customerName: string; totalAmount: string } | null>(null);
+  const [isOrderSuccessModalOpen, setIsOrderSuccessModalOpen] = useState(false);
 
   const districts = getDistricts();
   const thanas = form.district ? getThanas(form.district) : [];
@@ -65,14 +67,20 @@ export default function Checkout() {
       return response.json();
     },
     onSuccess: (order) => {
+      const totalAmount = cartState.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toString();
       setOrderSuccess({ 
         trackingId: order.trackingId, 
-        orderId: order.id 
+        orderId: order.id,
+        customerName: form.customerName,
+        totalAmount: totalAmount
       });
+      setIsOrderSuccessModalOpen(true);
       clearCart();
       toast({
-        title: "সফল!",
-        description: `আপনার অর্ডার সফলভাবে প্লেস হয়েছে। ট্র্যাকিং আইডি: ${order.trackingId}`,
+        title: language === 'bn' ? "সফল!" : "Success!",
+        description: language === 'bn' 
+          ? `আপনার অর্ডার সফলভাবে প্লেস হয়েছে। ট্র্যাকিং আইডি: ${order.trackingId}`
+          : `Your order has been placed successfully. Tracking ID: ${order.trackingId}`,
       });
     },
     onError: () => {
@@ -457,65 +465,16 @@ export default function Checkout() {
       </div>
 
       {/* Order Success Modal */}
-      <Dialog open={!!orderSuccess} onOpenChange={() => setOrderSuccess(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <i className="fas fa-check text-2xl text-green-600"></i>
-            </div>
-            <DialogTitle className="text-xl font-bold text-green-600">
-              {language === 'bn' ? 'অর্ডার সফল!' : 'Order Successful!'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600">
-              {language === 'bn' 
-                ? 'আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে এবং প্রক্রিয়াকরণ শুরু হয়েছে।'
-                : 'Your order has been successfully received and processing has begun.'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          {orderSuccess && (
-            <div className="space-y-4">
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">
-                    {language === 'bn' ? 'ট্র্যাকিং আইডি:' : 'Tracking ID:'}
-                  </p>
-                  <p className="text-2xl font-bold text-purple-600 font-mono tracking-wider">
-                    {orderSuccess.trackingId}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="text-sm text-gray-600 space-y-2">
-                <p className="font-semibold">
-                  {language === 'bn' ? 'পরবর্তী ধাপসমূহ:' : 'Next Steps:'}
-                </p>
-                <ul className="space-y-1 ml-4">
-                  <li>• {language === 'bn' ? 'পেমেন্ট যাচাই করা হবে' : 'Payment will be verified'}</li>
-                  <li>• {language === 'bn' ? 'প্রোডাক্ট প্রস্তুত করা হবে' : 'Product will be prepared'}</li>
-                  <li>• {language === 'bn' ? 'ডেলিভারির জন্য প্রেরণ করা হবে' : 'Will be sent for delivery'}</li>
-                </ul>
-              </div>
-              
-              <div className="flex gap-2">
-                <Link href="/track" className="flex-1">
-                  <Button variant="outline" className="w-full">
-                    <i className="fas fa-search mr-2"></i>
-                    {language === 'bn' ? 'অর্ডার ট্র্যাক করুন' : 'Track Order'}
-                  </Button>
-                </Link>
-                <Link href="/" className="flex-1">
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                    <i className="fas fa-home mr-2"></i>
-                    {language === 'bn' ? 'হোমে ফিরুন' : 'Back to Home'}
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {orderSuccess && (
+        <OrderSuccessModal
+          isOpen={isOrderSuccessModalOpen}
+          onOpenChange={setIsOrderSuccessModalOpen}
+          orderId={orderSuccess.orderId}
+          trackingId={orderSuccess.trackingId}
+          customerName={orderSuccess.customerName}
+          totalAmount={orderSuccess.totalAmount}
+        />
+      )}
     </div>
   );
 }

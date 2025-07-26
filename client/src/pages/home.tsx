@@ -35,7 +35,7 @@ export default function HomePage() {
       name: product.name,
       nameBn: product.nameBn,
       price: parseFloat(product.price),
-      image: product.image,
+      image: product.image || '/api/placeholder/300/300',
     });
     
     toast({
@@ -147,7 +147,7 @@ export default function HomePage() {
               <Card key={product.id} className="group hover:scale-105 transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl">
                 <div className="relative">
                   <img
-                    src={product.image}
+                    src={product.image || '/api/placeholder/300/300'}
                     alt={language === 'bn' ? product.nameBn : product.name}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                   />

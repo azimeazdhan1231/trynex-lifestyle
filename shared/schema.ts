@@ -70,6 +70,29 @@ export const orderTimeline = pgTable("order_timeline", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Promotional offers table
+export const promoOffers = pgTable("promo_offers", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  titleBn: text("title_bn").notNull(),
+  description: text("description").notNull(),
+  descriptionBn: text("description_bn").notNull(),
+  discountPercentage: integer("discount_percentage").notNull(),
+  validUntil: timestamp("valid_until").notNull(),
+  image: text("image"),
+  isActive: boolean("is_active").default(true),
+  showAsPopup: boolean("show_as_popup").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Wishlist table
+export const wishlist = pgTable("wishlist", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id"), // For now we'll use session ID
+  productId: text("product_id").references(() => products.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Admin users
 export const adminUsers = pgTable("admin_users", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -105,6 +128,16 @@ export const insertAdminUserSchema = createInsertSchema(adminUsers);
 export const selectAdminUserSchema = createSelectSchema(adminUsers);
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
+
+export const insertPromoOfferSchema = createInsertSchema(promoOffers);
+export const selectPromoOfferSchema = createSelectSchema(promoOffers);
+export type InsertPromoOffer = z.infer<typeof insertPromoOfferSchema>;
+export type PromoOffer = typeof promoOffers.$inferSelect;
+
+export const insertWishlistSchema = createInsertSchema(wishlist);
+export const selectWishlistSchema = createSelectSchema(wishlist);
+export type InsertWishlist = z.infer<typeof insertWishlistSchema>;
+export type Wishlist = typeof wishlist.$inferSelect;
 
 // Product categories for the expanded catalog
 export const PRODUCT_CATEGORIES = {

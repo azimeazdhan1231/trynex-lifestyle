@@ -7,6 +7,8 @@ import {
   customDesigns,
   orderTimeline,
   adminUsers,
+  promoOffers,
+  wishlist,
   type Product,
   type InsertProduct,
   type Order,
@@ -17,6 +19,10 @@ import {
   type InsertOrderTimeline,
   type AdminUser,
   type InsertAdminUser,
+  type PromoOffer,
+  type InsertPromoOffer,
+  type Wishlist,
+  type InsertWishlist,
   PRODUCT_CATEGORIES,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
@@ -72,6 +78,20 @@ export interface IStorage {
   getAdminByUsername(username: string): Promise<AdminUser | undefined>;
   createAdmin(admin: InsertAdminUser): Promise<AdminUser>;
   verifyAdminPassword(username: string, password: string): Promise<boolean>;
+
+  // Promo Offers
+  getPromoOffers(): Promise<PromoOffer[]>;
+  getActivePromoOffers(): Promise<PromoOffer[]>;
+  getPopupPromoOffers(): Promise<PromoOffer[]>;
+  createPromoOffer(offer: InsertPromoOffer): Promise<PromoOffer>;
+  updatePromoOffer(id: string, offer: Partial<InsertPromoOffer>): Promise<PromoOffer | undefined>;
+  deletePromoOffer(id: string): Promise<boolean>;
+
+  // Wishlist
+  getWishlist(userId: string): Promise<Wishlist[]>;
+  addToWishlist(userId: string, productId: string): Promise<Wishlist>;
+  removeFromWishlist(userId: string, productId: string): Promise<boolean>;
+  isInWishlist(userId: string, productId: string): Promise<boolean>;
 }
 
 // Memory storage as fallback
@@ -187,6 +207,35 @@ class MemoryStorage implements IStorage {
   private customDesigns: CustomDesign[] = [];
   private orderTimelineEntries: OrderTimeline[] = [];
   private admins: AdminUser[] = [];
+  private promoOffers: PromoOffer[] = [
+    {
+      id: 'promo-1',
+      title: 'Mega Sale 2024',
+      titleBn: 'মেগা সেল ২০২৪',
+      description: 'Get up to 50% off on all products!',
+      descriptionBn: 'সকল পণ্যে ৫০% পর্যন্ত ছাড়!',
+      discountPercentage: 50,
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      isActive: true,
+      showAsPopup: true,
+      image: '/api/placeholder/400/200',
+      createdAt: new Date(),
+    },
+    {
+      id: 'promo-2',
+      title: 'New Year Special',
+      titleBn: 'নববর্ষ স্পেশাল',
+      description: 'Celebrate with custom designs!',
+      descriptionBn: 'কাস্টম ডিজাইন দিয়ে উদযাপন করুন!',
+      discountPercentage: 30,
+      validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+      isActive: true,
+      showAsPopup: false,
+      image: '/api/placeholder/400/200',
+      createdAt: new Date(),
+    }
+  ];
+  private wishlistItems: Wishlist[] = [];
 
   async getProducts(): Promise<Product[]> {
     return this.products.filter(p => p.isActive);
@@ -365,6 +414,91 @@ class MemoryStorage implements IStorage {
     if (!admin) return false;
     return bcrypt.compare(password, admin.password);
   }
+
+  // Promo Offers
+  async getPromoOffers(): Promise<PromoOffer[]> {
+    return this.promoOffers.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getActivePromoOffers(): Promise<PromoOffer[]> {
+    return this.promoOffers.filter(offer => 
+      offer.isActive && new Date(offer.validUntil) > new Date()
+    );
+  }
+
+  async getPopupPromoOffers(): Promise<PromoOffer[]> {
+    return this.promoOffers.filter(offer => 
+      offer.isActive && offer.showAsPopup && new Date(offer.validUntil) > new Date()
+    );
+  }
+
+  async createPromoOffer(offer: InsertPromoOffer): Promise<PromoOffer> {
+    const newOffer: PromoOffer = {
+      id: randomUUID(),
+      createdAt: new Date(),
+      isActive: true,
+      showAsPopup: false,
+      ...offer,
+    };
+    this.promoOffers.push(newOffer);
+    return newOffer;
+  }
+
+  async updatePromoOffer(id: string, offer: Partial<InsertPromoOffer>): Promise<PromoOffer | undefined> {
+    const index = this.promoOffers.findIndex(o => o.id === id);
+    if (index === -1) return undefined;
+    
+    this.promoOffers[index] = { ...this.promoOffers[index], ...offer };
+    return this.promoOffers[index];
+  }
+
+  async deletePromoOffer(id: string): Promise<boolean> {
+    const index = this.promoOffers.findIndex(o => o.id === id);
+    if (index === -1) return false;
+    
+    this.promoOffers.splice(index, 1);
+    return true;
+  }
+
+  // Wishlist
+  async getWishlist(userId: string): Promise<Wishlist[]> {
+    return this.wishlistItems.filter(item => item.userId === userId);
+  }
+
+  async addToWishlist(userId: string, productId: string): Promise<Wishlist> {
+    // Check if already exists
+    const existing = this.wishlistItems.find(item => 
+      item.userId === userId && item.productId === productId
+    );
+    
+    if (existing) return existing;
+
+    const newWishlistItem: Wishlist = {
+      id: randomUUID(),
+      userId,
+      productId,
+      createdAt: new Date(),
+    };
+    this.wishlistItems.push(newWishlistItem);
+    return newWishlistItem;
+  }
+
+  async removeFromWishlist(userId: string, productId: string): Promise<boolean> {
+    const index = this.wishlistItems.findIndex(item => 
+      item.userId === userId && item.productId === productId
+    );
+    
+    if (index === -1) return false;
+    
+    this.wishlistItems.splice(index, 1);
+    return true;
+  }
+
+  async isInWishlist(userId: string, productId: string): Promise<boolean> {
+    return this.wishlistItems.some(item => 
+      item.userId === userId && item.productId === productId
+    );
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -511,6 +645,63 @@ export class DatabaseStorage implements IStorage {
     const admin = await this.getAdminByUsername(username);
     if (!admin) return false;
     return bcrypt.compare(password, admin.password);
+  }
+
+  // Promo Offers
+  async getPromoOffers(): Promise<PromoOffer[]> {
+    const result = await db.select().from(promoOffers).orderBy(desc(promoOffers.createdAt));
+    return result;
+  }
+
+  async getActivePromoOffers(): Promise<PromoOffer[]> {
+    const result = await db.select().from(promoOffers)
+      .where(and(eq(promoOffers.isActive, true)));
+    return result;
+  }
+
+  async getPopupPromoOffers(): Promise<PromoOffer[]> {
+    const result = await db.select().from(promoOffers)
+      .where(and(eq(promoOffers.isActive, true), eq(promoOffers.showAsPopup, true)));
+    return result;
+  }
+
+  async createPromoOffer(offer: InsertPromoOffer): Promise<PromoOffer> {
+    const result = await db.insert(promoOffers).values(offer).returning();
+    return result[0];
+  }
+
+  async updatePromoOffer(id: string, offer: Partial<InsertPromoOffer>): Promise<PromoOffer | undefined> {
+    const result = await db.update(promoOffers).set(offer).where(eq(promoOffers.id, id)).returning();
+    return result[0];
+  }
+
+  async deletePromoOffer(id: string): Promise<boolean> {
+    const result = await db.delete(promoOffers).where(eq(promoOffers.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Wishlist
+  async getWishlist(userId: string): Promise<Wishlist[]> {
+    const result = await db.select().from(wishlist).where(eq(wishlist.userId, userId));
+    return result;
+  }
+
+  async addToWishlist(userId: string, productId: string): Promise<Wishlist> {
+    const result = await db.insert(wishlist).values({ userId, productId }).returning();
+    return result[0];
+  }
+
+  async removeFromWishlist(userId: string, productId: string): Promise<boolean> {
+    const result = await db.delete(wishlist)
+      .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)))
+      .returning();
+    return result.length > 0;
+  }
+
+  async isInWishlist(userId: string, productId: string): Promise<boolean> {
+    const result = await db.select().from(wishlist)
+      .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)));
+    return result.length > 0;
   }
 }
 
