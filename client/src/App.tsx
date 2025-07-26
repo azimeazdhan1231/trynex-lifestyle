@@ -9,6 +9,7 @@ import Header from "@/components/layout/Header";
 import CartSidebar from "@/components/layout/CartSidebar";
 import Home from "@/pages/home";
 import Admin from "@/pages/admin";
+import ComprehensiveAdmin from "@/pages/comprehensive-admin";
 import Checkout from "@/pages/checkout";
 import CustomDesign from "@/pages/custom-design";
 import NotFound from "@/pages/not-found";
@@ -23,7 +24,7 @@ function Router() {
           <Route path="/products" component={() => <div className="p-8 text-center">Products Page Coming Soon</div>} />
           <Route path="/custom-design" component={CustomDesign} />
           <Route path="/contact" component={() => <div className="p-8 text-center">Contact Page Coming Soon</div>} />
-          <Route path="/admin" component={Admin} />
+          <Route path="/admin" component={ComprehensiveAdmin} />
           <Route path="/checkout" component={Checkout} />
           <Route component={NotFound} />
         </Switch>

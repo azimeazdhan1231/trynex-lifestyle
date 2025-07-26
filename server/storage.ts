@@ -392,7 +392,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: string): Promise<boolean> {
-    const result = await db.update(products).set({ isActive: false }).where(eq(products.id, id));
+    const result = await db.update(products).set({ isActive: false }).where(eq(products.id, id)).returning();
     return result.length > 0;
   }
 

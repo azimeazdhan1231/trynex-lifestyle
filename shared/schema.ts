@@ -18,6 +18,7 @@ export const products = pgTable("products", {
   isCustomizable: boolean("is_customizable").default(false),
   isFeatured: boolean("is_featured").default(false),
   inStock: boolean("in_stock").default(true),
+  isActive: boolean("is_active").default(true),
   features: text("features").array().default([]),
   featuresBn: text("features_bn").array().default([]),
   tags: text("tags").array().default([]),

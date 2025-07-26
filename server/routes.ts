@@ -182,6 +182,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Single image upload for admin
+  app.post("/api/upload", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      res.json({ filePath: `/uploads/${req.file.filename}` });
+    } catch (error) {
+      res.status(500).json({ message: "File upload failed" });
+    }
+  });
+
   // Get order by tracking ID
   app.get("/api/orders/track/:trackingId", async (req, res) => {
     try {
@@ -275,6 +288,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Product deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  // Admin: Create default admin user
+  app.post("/api/admin/create-default-admin", async (req, res) => {
+    try {
+      const { username = "admin", password = "admin123" } = req.body;
+      
+      // Check if admin already exists
+      const existing = await storage.getAdminByUsername(username);
+      if (existing) {
+        return res.status(409).json({ message: "Admin user already exists" });
+      }
+      
+      const admin = await storage.createAdmin({ username, password });
+      res.json({ 
+        message: "Default admin created successfully", 
+        admin: { id: admin.id, username: admin.username, role: admin.role } 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create admin user" });
     }
   });
 
