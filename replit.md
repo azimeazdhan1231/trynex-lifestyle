@@ -24,6 +24,8 @@ A comprehensive Bengali e-commerce platform specializing in personalized ceramic
 - ✅ **2025-07-26**: **SUCCESSFULLY DEPLOYED TO AWS EC2** - Complete Bengali e-commerce site live at http://51.21.144.52
 - ✅ **2025-07-26**: **FIXED ES MODULE ISSUES** - Created CommonJS server (.cjs) to resolve module compatibility
 - ✅ **2025-07-26**: **FULL API OPERATIONAL** - All endpoints working with 5 Bengali custom mug products
+- ✅ **2025-07-26**: **UPDATED TO NEW PUBLIC IP** - Backend now running at http://16.170.250.199
+- ✅ **2025-07-26**: **CONFIGURED FOR NETLIFY** - Frontend ready for deployment with AWS backend connection
 
 ## Database Setup
 The application now uses PostgreSQL with complete schema including:

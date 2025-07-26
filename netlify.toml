@@ -1,0 +1,19 @@
+[build]
+  base = "client"
+  publish = "client/dist"
+  command = "npm run build"
+
+[build.environment]
+  VITE_API_URL = "http://16.170.250.199"
+  VITE_BACKEND_URL = "http://16.170.250.199/api"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production]
+  environment = { VITE_API_URL = "http://16.170.250.199", VITE_BACKEND_URL = "http://16.170.250.199/api" }
+
+[context.deploy-preview]
+  environment = { VITE_API_URL = "http://16.170.250.199", VITE_BACKEND_URL = "http://16.170.250.199/api" }
