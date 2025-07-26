@@ -33,6 +33,8 @@ A comprehensive Bengali e-commerce platform specializing in personalized ceramic
 - ✅ **2025-07-26**: **DATABASE FALLBACK SYSTEM** - Added timeout protection and memory storage fallback for reliable order placement
 - ✅ **2025-07-26**: **REAL PRODUCT DATA API** - Created `/api/admin/populate-sample-data` endpoint to insert authentic Bengali products
 - ✅ **2025-07-26**: **EC2 LOCAL DATABASE FIX** - Updated database connection to use local PostgreSQL instead of Supabase for production
+- ✅ **2025-07-26**: **SUPABASE DATABASE RESTORED** - Switched back to user's Supabase database connection with SSL
+- ✅ **2025-07-26**: **EC2 DEPLOYMENT SCRIPT READY** - Complete automated deployment script for IP 16.170.250.199
 
 ## Database Setup
 The application now uses PostgreSQL with complete schema including:

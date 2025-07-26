@@ -28,7 +28,7 @@ import {
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:bengali123@localhost:5432/bengali_ecommerce";
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
@@ -37,7 +37,7 @@ let useMemoryStorage = false; // Use database storage by default
 try {
   const client = postgres(connectionString, {
     max: 1,
-    ssl: false, // No SSL for local database
+    ssl: 'require', // SSL required for Supabase
     connection: {
       application_name: 'trynex-lifestyle-store'
     }
