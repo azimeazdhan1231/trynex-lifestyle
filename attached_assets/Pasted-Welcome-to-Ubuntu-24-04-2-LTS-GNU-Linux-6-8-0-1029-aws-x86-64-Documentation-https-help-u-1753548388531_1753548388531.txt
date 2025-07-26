@@ -1,0 +1,151 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 16:44:53 UTC 2025
+
+  System load:  0.02              Temperature:           -273.1 C
+  Usage of /:   47.8% of 6.71GB   Processes:             121
+  Memory usage: 32%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 16:24:55 2025 from 13.48.4.202
+ubuntu@ip-172-31-45-165:~$ # Clean up and start fresh
+rm -rf trynex-lifestyle
+
+# Get your code with correct directory name
+git clone https://github.com/azimeazdhan1231/trynex-lifestyle.git
+cd trynex-lifestyle
+
+# Setup database
+sudo -u postgres createdb bengali_ecommerce 2>/dev/null || echo "Database already exists"
+echo "DATABASE_URL=postgresql://postgres@localhost:5432/bengali_ecommerce" > .env
+
+# Install and build
+npm install
+npm run build
+
+# Start server in background  
+nohup npm run start &
+
+# Configure Nginx properly
+sudo tee /etc/nginx/sites-available/trynex << 'EOF'
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        root /home/ubuntu/trynex-lifestyle/dist/public;
+        try_files $uri $uri/ /index.html;
+    }
+    
+    location /api/ {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    
+    location /uploads/ {
+        root /home/ubuntu/trynex-lifestyle;
+    }
+}
+echo "Website should be live at: http://172.31.45.165"nx/sites-enabled/
+Cloning into 'trynex-lifestyle'...
+remote: Enumerating objects: 539, done.
+remote: Counting objects: 100% (539/539), done.
+remote: Compressing objects: 100% (268/268), done.
+remote: Total 539 (delta 275), reused 527 (delta 263), pack-reused 0 (from 0)
+Receiving objects: 100% (539/539), 2.42 MiB | 27.22 MiB/s, done.
+Resolving deltas: 100% (275/275), done.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 497 packages, and audited 498 packages in 15s
+
+67 packages are looking for funding
+  run `npm fund` for details
+
+11 vulnerabilities (3 low, 8 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+✓ 1847 modules transformed.
+../dist/public/index.html                   0.46 kB │ gzip:   0.31 kB
+../dist/public/assets/index-4Ady8WjF.css   86.43 kB │ gzip:  14.44 kB
+../dist/public/assets/index-DY1prU0P.js   600.64 kB │ gzip: 178.23 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 7.97s
+
+  dist/index.js  53.0kb
+
+⚡ Done in 28ms
+[1] 34219
+nohup: ignoring input and appending output to 'nohup.out'
+server {
+    listen 80;
+    server_name _;
+    
+    location / {
+        root /home/ubuntu/trynex-lifestyle/dist/public;
+        try_files $uri $uri/ /index.html;
+    }
+    
+    location /api/ {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+    
+    location /uploads/ {
+        root /home/ubuntu/trynex-lifestyle;
+    }
+}
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Checking server status...
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization
+Content-Type: application/json; charset=utf-8
+Content-Length: 2420
+ETag: W/"974-/AGtigpFzBgk8FL5dC0d4Xh9KrY"
+Date: Sat, 26 Jul 2025 16:45:25 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+Website should be live at: http://172.31.45.165
+ubuntu@ip-172-31-45-165:~/trynex-lifestyle$ 
