@@ -140,7 +140,12 @@ export default function Admin() {
   // Promo offer mutations
   const createPromoOfferMutation = useMutation({
     mutationFn: async (offerData: any) => {
-      return apiRequest('POST', '/api/admin/promo-offers', {
+      const url = editingPromoOffer 
+        ? `/api/admin/promo-offers/${editingPromoOffer.id}`
+        : '/api/admin/promo-offers';
+      const method = editingPromoOffer ? 'PUT' : 'POST';
+      
+      return apiRequest(method, url, {
         ...offerData,
         validUntil: new Date(offerData.validUntil).toISOString(),
       });
@@ -148,11 +153,12 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promo-offers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/promo-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/promo-offers/popup'] });
       setIsPromoOfferDialogOpen(false);
       resetPromoOfferForm();
       toast({
         title: "সফল!",
-        description: "নতুন অফার তৈরি হয়েছে",
+        description: editingPromoOffer ? "অফার আপডেট হয়েছে" : "নতুন অফার তৈরি হয়েছে",
       });
     },
   });
@@ -542,14 +548,19 @@ export default function Admin() {
           {/* Promo Offers Tab */}
           <TabsContent value="offers" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">প্রমো অফার ম্যানেজমেন্ট</h2>
+              <h2 className="text-2xl font-bold">প্রমো অফার ও পপআপ ম্যানেজমেন্ট</h2>
               <Dialog open={isPromoOfferDialogOpen} onOpenChange={setIsPromoOfferDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetPromoOfferForm}>নতুন অফার যোগ করুন</Button>
+                  <Button onClick={() => {
+                    resetPromoOfferForm();
+                    setIsPromoOfferDialogOpen(true);
+                  }}>নতুন অফার যোগ করুন</Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>নতুন প্রমো অফার</DialogTitle>
+                    <DialogTitle>
+                      {editingPromoOffer ? 'প্রমো অফার এডিট করুন' : 'নতুন প্রমো অফার ও পপআপ'}
+                    </DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handlePromoOfferSubmit} className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
@@ -654,7 +665,7 @@ export default function Admin() {
                         বাতিল
                       </Button>
                       <Button type="submit" disabled={createPromoOfferMutation.isPending}>
-                        {createPromoOfferMutation.isPending ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
+                        {createPromoOfferMutation.isPending ? 'সেভ হচ্ছে...' : (editingPromoOffer ? 'আপডেট করুন' : 'সেভ করুন')}
                       </Button>
                     </div>
                   </form>
@@ -664,7 +675,7 @@ export default function Admin() {
 
             <Card>
               <CardHeader>
-                <CardTitle>সব প্রমো অফার</CardTitle>
+                <CardTitle>সব প্রমো অফার ও পপআপ</CardTitle>
               </CardHeader>
               <CardContent>
                 {promoOffersLoading ? (
@@ -706,6 +717,27 @@ export default function Admin() {
                             </span>
                           </div>
                           <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingPromoOffer(offer);
+                                setPromoOfferForm({
+                                  title: offer.title,
+                                  titleBn: offer.titleBn,
+                                  description: offer.description,
+                                  descriptionBn: offer.descriptionBn,
+                                  discountPercentage: offer.discountPercentage,
+                                  validUntil: new Date(offer.validUntil).toISOString().slice(0, 16),
+                                  image: offer.image || '',
+                                  isActive: offer.isActive,
+                                  showAsPopup: offer.showAsPopup,
+                                });
+                                setIsPromoOfferDialogOpen(true);
+                              }}
+                            >
+                              এডিট
+                            </Button>
                             <Button
                               variant="destructive"
                               size="sm"
