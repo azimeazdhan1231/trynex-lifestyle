@@ -1,0 +1,96 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 14:35:13 UTC 2025
+
+  System load:  0.1               Temperature:           -273.1 C
+  Usage of /:   46.3% of 6.71GB   Processes:             120
+  Memory usage: 31%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 14:32:20 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ #!/bin/bash
+# Complete deployment script for Bengali e-commerce site
+
+echo "🚀 Starting complete deployment of Trynex Bengali E-commerce..."
+
+# Navigate to project directory
+cd /home/ubuntu/trynex-lifestyle
+
+# Stop any existing PM2 processes
+pm2 delete all 2>/dev/null || true
+
+# Create a complete production server with all features
+cat > complete-server.js << 'EOF'
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Serve static files if dist exists
+const distPath = path.join(__dirname, 'client', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
+EOFo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"I working"d//javascript application/xml+rss application/json;
+🚀 Starting complete deployment of Trynex Bengali E-commerce...
+[PM2] Applying action deleteProcessId on app [all](ids: [ 0 ])
+[PM2] [trynex-simple](0) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+✅ Complete server created
+[PM2] Starting /home/ubuntu/trynex-lifestyle/complete-server.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name           │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ trynex-live    │ default     │ 1.0.0   │ fork    │ 28871    │ 0s     │ 0    │ online    │ 0%       │ 16.0mb   │ ubuntu   │ disabled │
+└────┴────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /home/ubuntu/.pm2/dump.pm2
+[PM2] Init System found: systemd
+[PM2] To setup the Startup Script, copy/paste the following command:
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
+✅ PM2 server started
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+✅ Nginx configured and restarted
+🧪 Testing deployment...
+  
