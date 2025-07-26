@@ -28,11 +28,11 @@ import {
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres.ickclyevpbgmppqizfov:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres";
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
-let useMemoryStorage = true; // Temporarily using memory storage for orders
+let useMemoryStorage = false; // Use database storage by default
 
 try {
   const client = postgres(connectionString, {
@@ -96,16 +96,7 @@ export interface IStorage {
 
 // Memory storage as fallback
 class MemoryStorage implements IStorage {
-  async verifyAdminPassword(username: string, password: string): Promise<boolean> {
-    console.log('Verifying admin password for:', username, 'password:', password);
-    const admin = await this.getAdminByUsername(username);
-    console.log('Found admin:', admin ? 'Yes' : 'No', admin?.password);
-    if (!admin) return false;
-    // Temporary: use plain text comparison for testing
-    const isValid = admin.password === password;
-    console.log('Password valid:', isValid);
-    return isValid;
-  }
+
 
   private products: Product[] = [
     {
@@ -144,6 +135,7 @@ class MemoryStorage implements IStorage {
       images: ['/api/placeholder/300/300'],
       isCustomizable: true,
       isFeatured: true,
+      inStock: true,
       isActive: true,
       features: ['Color changing', 'Heat sensitive', 'Premium ceramic'],
       featuresBn: ['রঙ পরিবর্তনকারী', 'তাপ সংবেদনশীল', 'প্রিমিয়াম সিরামিক'],
@@ -165,6 +157,7 @@ class MemoryStorage implements IStorage {
       images: ['/api/placeholder/300/300'],
       isCustomizable: true,
       isFeatured: true,
+      inStock: true,
       isActive: true,
       features: ['100% Cotton', 'Available in all sizes', 'Custom printing'],
       featuresBn: ['১০০% কটন', 'সব সাইজে পাওয়া যায়', 'কাস্টম প্রিন্টিং'],
@@ -186,6 +179,7 @@ class MemoryStorage implements IStorage {
       images: ['/api/placeholder/300/300'],
       isCustomizable: true,
       isFeatured: true,
+      inStock: true,
       isActive: true,
       features: ['Stainless steel', 'Temperature retention', 'BPA free'],
       featuresBn: ['স্টেইনলেস স্টিল', 'তাপমাত্রা ধরে রাখে', 'বিপিএ মুক্ত'],
@@ -207,6 +201,7 @@ class MemoryStorage implements IStorage {
       images: ['/api/placeholder/300/300'],
       isCustomizable: false,
       isFeatured: true,
+      inStock: true,
       isActive: true,
       features: ['Multiple items', 'Premium packaging', 'Perfect for gifts'],
       featuresBn: ['একাধিক আইটেম', 'প্রিমিয়াম প্যাকেজিং', 'উপহারের জন্য নিখুঁত'],
@@ -273,6 +268,7 @@ class MemoryStorage implements IStorage {
       isActive: true,
       isCustomizable: false,
       isFeatured: false,
+      inStock: true,
       images: [],
       features: [],
       featuresBn: [],
@@ -311,8 +307,8 @@ class MemoryStorage implements IStorage {
     return this.orders.find(o => o.id === id);
   }
 
-  async getOrderByTrackingId(trackingId: string): Promise<Order | null> {
-    return this.orders.find(o => o.trackingId === trackingId) || null;
+  async getOrderByTrackingId(trackingId: string): Promise<Order | undefined> {
+    return this.orders.find(o => o.trackingId === trackingId);
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {
@@ -326,7 +322,6 @@ class MemoryStorage implements IStorage {
       paymentNumber: null,
       paymentScreenshot: null,
       notes: null,
-      deliveryCharge: '60',
       ...order,
       trackingId,
     };
@@ -459,6 +454,7 @@ class MemoryStorage implements IStorage {
       createdAt: new Date(),
       isActive: true,
       showAsPopup: false,
+      image: null,
       ...offer,
     };
     this.promoOffers.push(newOffer);
