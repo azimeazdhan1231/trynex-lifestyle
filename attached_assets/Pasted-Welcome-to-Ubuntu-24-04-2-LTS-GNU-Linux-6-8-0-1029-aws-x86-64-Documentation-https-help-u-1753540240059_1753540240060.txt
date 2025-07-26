@@ -1,0 +1,123 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 14:22:52 UTC 2025
+
+  System load:  0.12              Temperature:           -273.1 C
+  Usage of /:   43.2% of 6.71GB   Processes:             110
+  Memory usage: 31%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 14:28:17 2025 from 13.48.4.202
+ubuntu@ip-172-31-45-165:~$ # First, navigate to the project directory
+cd trynex-lifestyle
+
+# Let's check the vite.config.ts file to see what's wrong
+cat vite.config.ts
+
+# Stop all PM2 processes first
+pm2 delete all
+
+# Fix the vite.config.ts issue by setting a proper environment variable
+export NODE_ENV=production
+
+# Create a proper .env file with all required variables
+cat > .env << 'EOF'
+NODE_ENV=production
+PORT=5000
+DATABASE_URL=postgresql://trynex_user:usernameamit333@localhost:5432/trynex_db
+PGUSER=trynex_user
+PGPASSWORD=usernameamit333
+PGDATABASE=trynex_db
+PGHOST=localhost
+PGPORT=5432
+EOF
+
+# Try starting the server directly first to test
+npm run dev
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+
+export default defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" &&
+    process.env.REPL_ID !== undefined
+      ? [
+          await import("@replit/vite-plugin-cartographer").then((m) =>
+            m.cartographer(),
+          ),
+        ]
+      : []),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  root: path.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true,
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
+  },
+});
+[PM2] Applying action deleteProcessId on app [all](ids: [ 0, 1 ])
+[PM2] [all](0) ✓
+[PM2] [trynex-app](1) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Attempting database connection to: postgresql://postgres:***@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+Database client initialized successfully
+Using storage type: Database
+node:internal/errors:496
+    ErrorCaptureStackTrace(err);
+    ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "paths[0]" argument must be of type string. Received undefined
+    at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+    at new NodeError (node:internal/errors:405:5)
+    at validateString (node:internal/validators:162:11)
+    at Object.resolve (node:path:1115:7)
+    at <anonymous> (/home/ubuntu/trynex-lifestyle/vite.config.ts:21:17)
+    at ModuleJob.run (node:internal/modules/esm/module_job:195:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:337:24)
+    at async loadESM (node:internal/process/esm_loader:34:7)
+    at async handleMainPromise (node:internal/modules/run_main:106:12) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v18.20.8
+ubuntu@ip-172-31-45-165:~/trynex-lifestyle$ 
