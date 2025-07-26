@@ -34,7 +34,7 @@ function Router() {
           <Route path="/wishlist" component={Wishlist} />
           <Route path="/terms-conditions" component={TermsConditions} />
           <Route path="/return-policy" component={ReturnPolicy} />
-          <Route path="/admin" component={EnhancedAdmin} />
+          <Route path="/admin" component={Admin} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/track" component={TrackOrder} />
           <Route path="/order-tracking" component={TrackOrder} />

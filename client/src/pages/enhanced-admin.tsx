@@ -13,7 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import type { Order, Product, InsertProduct } from '@shared/schema';
+import { ProductForm } from '@/components/ProductForm';
+import { PromoOfferForm } from '@/components/PromoOfferForm';
+import type { Order, Product, InsertProduct, PromoOffer } from '@shared/schema';
 
 interface AdminUser {
   id: string;
@@ -82,7 +84,7 @@ export default function EnhancedAdmin() {
   });
 
   // Fetch promo offers
-  const { data: offers = [], isLoading: offersLoading, refetch: refetchOffers } = useQuery({
+  const { data: offers = [], isLoading: offersLoading, refetch: refetchOffers } = useQuery<PromoOffer[]>({
     queryKey: ['/api/admin/promo-offers'],
     enabled: isLoggedIn,
   });
@@ -400,7 +402,7 @@ export default function EnhancedAdmin() {
                     <Card key={product.id}>
                       <CardContent className="p-4">
                         <img
-                          src={product.image}
+                          src={product.image || '/api/placeholder/300/300'}
                           alt={product.name}
                           className="w-full h-48 object-cover rounded-lg mb-4"
                         />
