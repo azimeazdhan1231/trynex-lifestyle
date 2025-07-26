@@ -361,6 +361,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Get all promo offers
+  app.get("/api/admin/promo-offers", async (req, res) => {
+    try {
+      const offers = await storage.getPromoOffers();
+      res.json(offers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch promo offers" });
+    }
+  });
+
+  // Admin: Create promo offer
+  app.post("/api/admin/promo-offers", async (req, res) => {
+    try {
+      const offer = await storage.createPromoOffer(req.body);
+      res.json(offer);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create promo offer" });
+    }
+  });
+
+  // Admin: Update promo offer
+  app.put("/api/admin/promo-offers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = await storage.updatePromoOffer(id, req.body);
+      if (!updated) {
+        return res.status(404).json({ message: "Promo offer not found" });
+      }
+      res.json({ message: "Promo offer updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update promo offer" });
+    }
+  });
+
+  // Admin: Delete promo offer
+  app.delete("/api/admin/promo-offers/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deletePromoOffer(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Promo offer not found" });
+      }
+      res.json({ message: "Promo offer deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete promo offer" });
+    }
+  });
+
   // Admin: Create default admin user
   app.post("/api/admin/create-default-admin", async (req, res) => {
     try {

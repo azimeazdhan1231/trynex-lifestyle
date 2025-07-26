@@ -81,6 +81,54 @@ export default function EnhancedAdmin() {
     enabled: isLoggedIn,
   });
 
+  // Fetch promo offers
+  const { data: offers = [], isLoading: offersLoading, refetch: refetchOffers } = useQuery({
+    queryKey: ['/api/admin/promo-offers'],
+    enabled: isLoggedIn,
+  });
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: (productId: string) =>
+      fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: "সফল!",
+        description: "প্রোডাক্ট ডিলিট হয়েছে",
+      });
+    },
+  });
+
+  // Delete offer mutation
+  const deleteOfferMutation = useMutation({
+    mutationFn: (offerId: string) =>
+      fetch(`/api/admin/promo-offers/${offerId}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      refetchOffers();
+      toast({
+        title: "সফল!",
+        description: "প্রমো অফার ডিলিট হয়েছে",
+      });
+    },
+  });
+
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      deleteProductMutation.mutate(productId);
+    }
+  };
+
+  const handleDeleteOffer = (offerId: string) => {
+    if (confirm('Are you sure you want to delete this offer?')) {
+      deleteOfferMutation.mutate(offerId);
+    }
+  };
+
   // Update order status mutation
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
@@ -223,12 +271,13 @@ export default function EnhancedAdmin() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="orders">
               অর্ডার ({orders.length})
               {autoRefresh && <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>}
             </TabsTrigger>
             <TabsTrigger value="products">প্রোডাক্ট</TabsTrigger>
+            <TabsTrigger value="offers">প্রমো অফার</TabsTrigger>
             <TabsTrigger value="analytics">বিশ্লেষণ</TabsTrigger>
           </TabsList>
 
@@ -322,6 +371,22 @@ export default function EnhancedAdmin() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">প্রোডাক্ট ম্যানেজমেন্ট</h2>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <i className="fas fa-plus mr-2"></i>
+                      নতুন প্রোডাক্ট
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>নতুন প্রোডাক্ট যোগ করুন</DialogTitle>
+                    </DialogHeader>
+                    <ProductForm onSuccess={() => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+                    }} />
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {productsLoading ? (
@@ -341,11 +406,138 @@ export default function EnhancedAdmin() {
                         />
                         <h3 className="font-semibold mb-2">{product.name}</h3>
                         <p className="text-sm text-gray-600 mb-2">{product.nameBn}</p>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center mb-3">
                           <span className="font-bold text-lg">৳{product.price}</span>
                           <Badge variant={product.inStock ? "default" : "secondary"}>
                             {product.inStock ? "স্টকে আছে" : "স্টকে নেই"}
                           </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1">
+                                <i className="fas fa-edit mr-1"></i>
+                                এডিট
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>প্রোডাক্ট এডিট করুন</DialogTitle>
+                              </DialogHeader>
+                              <ProductForm 
+                                product={product} 
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+                                }} 
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteProduct(product.id)}
+                          >
+                            <i className="fas fa-trash mr-1"></i>
+                            ডিলিট
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+          
+          {/* Promo Offers Tab */}
+          <TabsContent value="offers">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">প্রমো অফার ম্যানেজমেন্ট</h2>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <i className="fas fa-plus mr-2"></i>
+                      নতুন অফার
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>নতুন প্রমো অফার যোগ করুন</DialogTitle>
+                    </DialogHeader>
+                    <PromoOfferForm onSuccess={() => {
+                      refetchOffers();
+                    }} />
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {offersLoading ? (
+                <div className="text-center py-8">
+                  <i className="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                  <p className="mt-2 text-gray-600">অফার লোড হচ্ছে...</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {offers.map((offer) => (
+                    <Card key={offer.id}>
+                      <CardContent className="p-4">
+                        {offer.image && (
+                          <img
+                            src={offer.image}
+                            alt={offer.title}
+                            className="w-full h-32 object-cover rounded-lg mb-4"
+                          />
+                        )}
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold">{offer.title}</h3>
+                          <div className="flex gap-2">
+                            <Badge variant={offer.isActive ? "default" : "secondary"}>
+                              {offer.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                            </Badge>
+                            {offer.showAsPopup && (
+                              <Badge variant="outline">পপআপ</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{offer.titleBn}</p>
+                        <p className="text-sm mb-3">{offer.description}</p>
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="font-bold text-lg text-green-600">
+                            {offer.discountPercentage}% ছাড়
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {new Date(offer.validUntil).toLocaleDateString('bn-BD')} পর্যন্ত
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex-1">
+                                <i className="fas fa-edit mr-1"></i>
+                                এডিট
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>প্রমো অফার এডিট করুন</DialogTitle>
+                              </DialogHeader>
+                              <PromoOfferForm 
+                                offer={offer} 
+                                onSuccess={() => {
+                                  refetchOffers();
+                                }} 
+                              />
+                            </DialogContent>
+                          </Dialog>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteOffer(offer.id)}
+                          >
+                            <i className="fas fa-trash mr-1"></i>
+                            ডিলিট
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
