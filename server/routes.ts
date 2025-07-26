@@ -253,6 +253,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Test database connection
+      const products = await storage.getProducts();
+      const dbStatus = products ? "connected" : "disconnected";
+      
+      res.json({ 
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        database: dbStatus,
+        server: "running",
+        environment: process.env.NODE_ENV || "development"
+      });
+    } catch (error) {
+      res.status(503).json({ 
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        database: "error",
+        error: (error as Error).message
+      });
+    }
+  });
+
   // Test endpoint for debugging
   app.get("/api/test", (req, res) => {
     console.log('Test endpoint hit');
