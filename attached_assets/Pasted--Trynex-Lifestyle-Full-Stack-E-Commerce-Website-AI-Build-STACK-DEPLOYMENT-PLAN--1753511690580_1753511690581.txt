@@ -1,0 +1,85 @@
+# 🔥 Trynex Lifestyle — Full-Stack E-Commerce Website AI Build 🔥
+
+# 📦 STACK & DEPLOYMENT PLAN:
+# - Frontend: React + Tailwind CSS + HTML + JS → Deploy to Netlify
+# - Backend: Node.js + Express → Deploy to AWS EC2 (Ubuntu 24.04)
+# - Database: Supabase PostgreSQL (Realtime)
+# - GitHub: Full repo with frontend & backend folders
+# - Manual Payment: bKash/Nagad/Upay: 01747292277
+# - WhatsApp Support: ‪+8801940689487‬
+# - Email: trynex-lifestyle@gmail.com
+
+# ✅ FRONTEND FEATURES:
+# - Ultra-modern, responsive, fast Bengali-friendly UI
+# - Pages: Home, Products, Product Details, Cart, Checkout, Order Success, Order Tracking, Admin Panel, About, Terms, Contact
+# - Dynamic cart system: Add, remove, quantity update
+# - Checkout with delivery location: Dropdowns for District & Thana
+# - Manual payment instructions shown before confirm
+# - After payment, order success + unique tracking ID (example: #TRX123456)
+# - Track orders using tracking ID on /track page
+# - Popup offers pulled live from Supabase
+# - Admin Panel hidden in /admin route with login
+
+# ✅ BACKEND FEATURES:
+# - Node.js + Express REST API (secured)
+# - Connects to Supabase DB using credentials below
+# - Handles product fetching, order creation, tracking lookup, admin routes
+# - Generates unique tracking IDs
+# - CORS setup for Netlify frontend
+# - Admin login & dashboard controls
+
+# ✅ SUPABASE DATABASE SETUP:
+DATABASE_URL=postgresql://postgres.wifsqonbnfmwtqvupqbk:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+SUPABASE_PROJECT_URL=https://wifsqonbnfmwtqvupqbk.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpZnNxb25ibmZtd3RxdnVwcWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwNzY0ODIsImV4cCI6MjA2ODY1MjQ4Mn0.GTlN4jrPrIOiJVE8mEvRfwttYxw5CiX3Cn0gBYAJh6s
+
+# ✅ SCHEMA TO USE:
+# TABLE: categories (id, name, slug)
+# TABLE: products (id, name, image, price, category_id, stock)
+# TABLE: orders (id, name, phone, district, thana, address, total, advance_paid, tracking_id, status, created_at)
+# TABLE: coupons (id, code, discount_percent, min_amount, is_active)
+# TABLE: popup_ads (id, title, message, active)
+
+# ✅ ADMIN PANEL FEATURES:
+# - Secure login (simple password auth)
+# - View/manage orders with live status
+# - Add/edit/delete products, categories
+# - Control coupons & popup ads in real time
+# - Track total sales, orders, and users
+# - Order management with status update
+
+# ✅ DEPLOYMENT INSTRUCTIONS:
+# 1. FRONTEND (Netlify):
+#    - Add ENV vars:
+#       VITE_SUPABASE_URL
+#       VITE_SUPABASE_ANON_KEY
+#       VITE_BACKEND_API (your EC2 link)
+#    - Build command: npm run build
+#    - Publish directory: dist/
+
+# 2. BACKEND (AWS EC2):
+#    - Use Ubuntu 24.04 t2.micro instance
+#    - Install Node.js, Git, PM2
+#    - Pull repo, add .env file with Supabase info
+#    - Run with: pm2 start server.js
+#    - Open port 80 in security group
+
+# ✅ FINAL DELIVERABLES:
+# - frontend/ (React app ready for Netlify)
+# - backend/ (Node API ready for EC2)
+# - .env.example files
+# - schema.sql or DB seed/init logic
+# - README.md with full deploy steps
+# - Full responsive, Bengali optimized, fast, dynamic UI
+# - Realtime database connection via Supabase
+
+# 🚀 VERY IMPORTANT REQUEST TO REPLIT AI:
+# → After you generate the full frontend, backend, and schema:
+# ✅ HELP ME set everything up correctly as much as you can
+# ✅ GUIDE me step-by-step for deploying to Netlify + AWS EC2 + Supabase
+# ✅ SUGGEST me any additional optimizations or UI/UX improvements
+# ✅ SHOW me how to connect environment variables and test live orders
+# ✅ HELP me make the admin panel fully working and secure
+
+# 🔥 I want this project to be full-stack, ultra-dynamic, modern, smooth, and Bengali-ready.
+# ▶ START the full build for Trynex Lifestyle Gift E-commerce NOW!
