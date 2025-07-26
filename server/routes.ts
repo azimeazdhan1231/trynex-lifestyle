@@ -67,8 +67,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create order
-  app.post("/api/orders", upload.single('paymentScreenshot'), async (req, res) => {
+  // Create order - handle multiple files
+  app.post("/api/orders", upload.fields([
+    { name: 'paymentScreenshot', maxCount: 1 },
+    { name: 'customDesignFiles', maxCount: 10 }
+  ]), async (req, res) => {
     try {
       const orderData = JSON.parse(req.body.orderData);
       
@@ -93,8 +96,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedOrder = insertOrderSchema.parse(completeOrderData);
       
-      if (req.file) {
-        validatedOrder.paymentScreenshot = `/uploads/${req.file.filename}`;
+      // Handle file uploads
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      if (files?.paymentScreenshot?.[0]) {
+        validatedOrder.paymentScreenshot = `/uploads/${files.paymentScreenshot[0].filename}`;
       }
       
       const order = await storage.createOrder(validatedOrder);
@@ -110,10 +115,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create custom designs if provided
       if (req.body.customDesigns) {
         const customDesigns = JSON.parse(req.body.customDesigns);
-        for (const design of customDesigns) {
+        const customDesignFiles = files?.customDesignFiles || [];
+        
+        for (let i = 0; i < customDesigns.length; i++) {
+          const design = customDesigns[i];
+          const designFile = customDesignFiles[i];
+          
           await storage.createCustomDesign({
             ...design,
             orderId: order.id,
+            designFile: designFile ? `/uploads/${designFile.filename}` : design.designFile
           });
         }
       }
