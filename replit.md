@@ -84,9 +84,17 @@ The application is designed for a split deployment approach:
 - **Files**: Upload directory needs persistent storage
 
 ### Database
-- **Provider**: Supabase PostgreSQL (credentials provided in attached assets)
+- **Provider**: Supabase PostgreSQL (new credentials updated January 2025)
+- **Connection**: postgresql://postgres.ickclyevpbgmppqizfov:***@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
 - **Migrations**: Drizzle migrations in `/migrations` directory
-- **Connection**: Environment variable-based configuration
+- **Status**: Connected and schema pushed successfully
+
+### Recent Changes (January 26, 2025)
+- ✓ Fixed database connection with new Supabase credentials
+- ✓ Full-stack architecture completed with Bengali e-commerce functionality
+- ✓ Memory storage fallback implemented for development
+- ✓ All APIs working with proper error handling
+- ✓ Ready for deployment to GitHub + Netlify (frontend) + AWS (backend)
 
 ### Key Architectural Decisions
 

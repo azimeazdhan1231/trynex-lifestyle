@@ -97,6 +97,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Populate sample data endpoint
+  app.post("/api/admin/populate-sample-data", async (req, res) => {
+    try {
+      const sampleProducts = [
+        {
+          name: 'Premium Love Mug',
+          nameBn: 'প্রিমিয়াম লাভ মগ',
+          description: 'Beautiful ceramic mug perfect for couples',
+          descriptionBn: 'কাপলদের জন্য নিখুঁত সুন্দর সিরামিক মগ',
+          category: 'mugs',
+          subcategory: 'love-mug',
+          price: '550',
+          originalPrice: '650',
+          image: '/api/placeholder/300/300',
+          images: ['/api/placeholder/300/300'],
+          isCustomizable: true,
+          isFeatured: true,
+          features: ['Dishwasher safe', 'Microwave safe', 'Premium ceramic'],
+          featuresBn: ['ডিশওয়াশার নিরাপদ', 'মাইক্রোওয়েভ নিরাপদ', 'প্রিমিয়াম সিরামিক'],
+          tags: ['love', 'couple', 'gift'],
+          specifications: { material: 'ceramic', capacity: '350ml' }
+        },
+        {
+          name: 'Magic Color Change Mug',
+          nameBn: 'ম্যাজিক কালার চেঞ্জ মগ',
+          description: 'Color changing mug that reveals design when hot',
+          descriptionBn: 'গরম হলে ডিজাইন প্রকাশ করে এমন রঙ পরিবর্তনকারী মগ',
+          category: 'mugs',
+          subcategory: 'magic-mug',
+          price: '750',
+          originalPrice: '850',
+          image: '/api/placeholder/300/300',
+          images: ['/api/placeholder/300/300'],
+          isCustomizable: true,
+          isFeatured: true,
+          features: ['Color changing', 'Heat sensitive', 'Premium ceramic'],
+          featuresBn: ['রঙ পরিবর্তনকারী', 'তাপ সংবেদনশীল', 'প্রিমিয়াম সিরামিক'],
+          tags: ['magic', 'surprise', 'gift'],
+          specifications: { material: 'ceramic', capacity: '330ml' }
+        },
+        {
+          name: 'Custom Couple T-Shirt',
+          nameBn: 'কাস্টম কাপল টি-শার্ট',
+          description: 'Comfortable couple t-shirt with custom design',
+          descriptionBn: 'কাস্টম ডিজাইন সহ আরামদায়ক কাপল টি-শার্ট',
+          category: 'tshirts',
+          subcategory: 'couple-tshirt',
+          price: '1100',
+          originalPrice: '1300',
+          image: '/api/placeholder/300/300',
+          images: ['/api/placeholder/300/300'],
+          isCustomizable: true,
+          isFeatured: true,
+          features: ['100% Cotton', 'Available in all sizes', 'Custom printing'],
+          featuresBn: ['১০০% কটন', 'সব সাইজে পাওয়া যায়', 'কাস্টম প্রিন্টিং'],
+          tags: ['couple', 'tshirt', 'romance'],
+          specifications: { material: 'cotton', sizes: ['S', 'M', 'L', 'XL'] }
+        }
+      ];
+
+      for (const productData of sampleProducts) {
+        await storage.createProduct(productData);
+      }
+
+      res.json({ message: "Sample data populated successfully", count: sampleProducts.length });
+    } catch (error) {
+      console.error("Error populating sample data:", error);
+      res.status(500).json({ message: "Failed to populate sample data" });
+    }
+  });
+
   // Upload custom design files
   app.post("/api/designs/upload", upload.array('designs', 5), async (req, res) => {
     try {

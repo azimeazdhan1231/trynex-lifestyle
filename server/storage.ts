@@ -22,14 +22,26 @@ import {
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres.ickclyevpbgmppqizfov:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres";
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
-let useMemoryStorage = true; // Use memory storage until database is properly configured
+let useMemoryStorage = false; // Now using proper database connection
 
-// Temporarily use memory storage until database credentials are verified
-console.log("Using memory storage for development");
+try {
+  const client = postgres(connectionString, {
+    max: 1,
+    ssl: 'require',
+    connection: {
+      application_name: 'trynex-lifestyle-store'
+    }
+  });
+  db = drizzle(client);
+  console.log("Database client initialized successfully");
+} catch (error) {
+  console.warn("Database connection failed, falling back to memory storage:", (error as Error).message);
+  useMemoryStorage = true;
+}
 
 console.log("Using storage type:", useMemoryStorage ? "Memory" : "Database");
 
