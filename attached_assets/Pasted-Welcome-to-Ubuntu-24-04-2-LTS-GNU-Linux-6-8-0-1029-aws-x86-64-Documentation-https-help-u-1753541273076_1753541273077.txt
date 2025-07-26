@@ -1,0 +1,65 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 14:47:34 UTC 2025
+
+  System load:  0.0               Temperature:           -273.1 C
+  Usage of /:   46.3% of 6.71GB   Processes:             119
+  Memory usage: 30%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 14:43:05 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ pm2 delete all && node -e "
+const express = require('express');
+const app = express();
+app.use(express.json());
+app.get('/', (req, res) => res.json({message: 'Trynex Bengali E-commerce - LIVE!', status: 'Working'}));
+app.get('/api/test', (req, res) => res.json({message: 'API Working Perfect!', server: 'AWS EC2', status: 'Live'}));
+app.get('/api/products', (req, res) => res.json([{id: '1', name: 'Premium Love Mug', nameBn: 'প্রিমিয়াম ভালোবাসার মগ', price: 550}, {id: '2', name: 'Custom Photo Mug', nameBn: 'কাস্টম ফটো মগ', price: 650}]));
+app.listen(5000, '0.0.0.0', () => console.log('Server LIVE on port 5000'));
+" &
+[1] 29919
+ubuntu@ip-172-31-45-165:~$ [PM2] Applying action deleteProcessId on app [all](ids: [ 0 ])
+[PM2] [trynex-final](0) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+node:internal/modules/cjs/loader:1143
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /home/ubuntu/[eval]
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+    at Module._load (node:internal/modules/cjs/loader:981:27)
+    at Module.require (node:internal/modules/cjs/loader:1231:19)
+    at require (node:internal/modules/helpers:177:18)
+    at [eval]:2:17
+    at runScriptInThisContext (node:internal/vm:143:10)
+    at node:internal/process/execution:100:14
+    at [eval]-wrapper:6:24
+    at runScript (node:internal/process/execution:83:62)
+    at evalScript (node:internal/process/execution:114:10) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ '/home/ubuntu/[eval]' ]
+}
+
+Node.js v18.20.8
