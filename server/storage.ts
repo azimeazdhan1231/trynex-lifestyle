@@ -28,7 +28,7 @@ import {
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:usernameamit333@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:bengali123@localhost:5432/bengali_ecommerce";
 console.log("Attempting database connection to:", connectionString.replace(/:[^:]*@/, ':***@'));
 
 let db: any = null;
@@ -37,7 +37,7 @@ let useMemoryStorage = false; // Use database storage by default
 try {
   const client = postgres(connectionString, {
     max: 1,
-    ssl: 'require',
+    ssl: false, // No SSL for local database
     connection: {
       application_name: 'trynex-lifestyle-store'
     }
@@ -522,13 +522,21 @@ export class DatabaseStorage implements IStorage {
   // Products
   async getProducts(): Promise<Product[]> {
     try {
-      const result = await db.select().from(products).where(eq(products.isActive, true));
-      return result;
+      if (!useMemoryStorage && db) {
+        const result = await Promise.race([
+          db.select().from(products).where(eq(products.isActive, true)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Database timeout')), 8000))
+        ]);
+        console.log(`Database: Fetched ${(result as Product[]).length} products`);
+        return result as Product[];
+      }
     } catch (error) {
-      console.warn("Database operation failed, falling back to memory storage");
-      const memoryStorage = new MemoryStorage();
-      return await memoryStorage.getProducts();
+      console.error("Database product fetch failed, using memory fallback");
     }
+    
+    // Memory storage fallback
+    const memoryStorage = new MemoryStorage();
+    return await memoryStorage.getProducts();
   }
 
   async getProduct(id: string): Promise<Product | undefined> {

@@ -595,6 +595,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Populate sample Bengali products for production
+  app.post("/api/admin/populate-sample-data", async (req, res) => {
+    try {
+      console.log("Populating sample Bengali products...");
+      
+      const bengaliProducts = [
+        {
+          id: "premium-love-mug",
+          name: "Premium Love Mug",
+          nameBn: "প্রিমিয়াম লাভ মগ",
+          description: "Express your love with this beautiful ceramic mug featuring elegant Bengali calligraphy",
+          descriptionBn: "এই সুন্দর সিরামিক মগটি দিয়ে আপনার ভালোবাসা প্রকাশ করুন, যাতে রয়েছে মার্জিত বাংলা ক্যালিগ্রাফি",
+          price: 550,
+          originalPrice: 650,
+          category: "mugs",
+          subcategory: "love",
+          image: "/api/placeholder/300/300",
+          tags: ["love", "valentine", "gift", "ceramic"],
+          features: ["Premium quality ceramic", "Dishwasher safe", "Custom Bengali text", "Perfect gift"],
+          featuresBn: ["প্রিমিয়াম মানের সিরামিক", "ডিশওয়াশার নিরাপদ", "কাস্টম বাংলা টেক্সট", "পারফেক্ট উপহার"],
+          isActive: true,
+          stock: 50,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: "family-bond-mug",
+          name: "Family Bond Mug",
+          nameBn: "পরিবারিক বন্ধন মগ",
+          description: "Celebrate family relationships with beautiful Bengali family quotes",
+          descriptionBn: "সুন্দর বাংলা পারিবারিক উক্তি দিয়ে পরিবারিক সম্পর্ক উদযাপন করুন",
+          price: 500,
+          originalPrice: 600,
+          category: "mugs",
+          subcategory: "family",
+          image: "/api/placeholder/300/300",
+          tags: ["family", "parents", "siblings", "bond"],
+          features: ["High-quality print", "Fade resistant", "Microwave safe", "11oz capacity"],
+          featuresBn: ["উচ্চ মানের প্রিন্ট", "ফেইড প্রতিরোধী", "মাইক্রোওয়েভ নিরাপদ", "১১ আউন্স ক্ষমতা"],
+          isActive: true,
+          stock: 35,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: "success-motivation-mug",
+          name: "Success Motivation Mug",
+          nameBn: "সফলতার অনুপ্রেরণা মগ",
+          description: "Start your day with powerful Bengali motivational quotes",
+          descriptionBn: "শক্তিশালী বাংলা অনুপ্রেরণামূলক উক্তি দিয়ে আপনার দিন শুরু করুন",
+          price: 480,
+          originalPrice: 580,
+          category: "mugs",
+          subcategory: "motivation",
+          image: "/api/placeholder/300/300",
+          tags: ["success", "motivation", "inspiration", "quotes"],
+          features: ["Inspiring Bengali quotes", "Premium ceramic", "Comfortable handle", "Daily motivation"],
+          featuresBn: ["অনুপ্রেরণামূলক বাংলা উক্তি", "প্রিমিয়াম সিরামিক", "আরামদায়ক হ্যান্ডেল", "দৈনিক অনুপ্রেরণা"],
+          isActive: true,
+          stock: 42,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: "friendship-special-mug", 
+          name: "Friendship Special Mug",
+          nameBn: "বন্ধুত্বের বিশেষ মগ",
+          description: "Perfect gift for your best friend with heartwarming Bengali friendship quotes",
+          descriptionBn: "হৃদয়স্পর্শী বাংলা বন্ধুত্বের উক্তি সহ আপনার সেরা বন্ধুর জন্য নিখুঁত উপহার",
+          price: 520,
+          originalPrice: 620,
+          category: "mugs",
+          subcategory: "friendship",
+          image: "/api/placeholder/300/300",
+          tags: ["friendship", "bestfriend", "gift", "quotes"],
+          features: ["Friendship quotes", "Durable material", "Gift wrapping available", "Personalization option"],
+          featuresBn: ["বন্ধুত্বের উক্তি", "টেকসই উপাদান", "গিফট র‍্যাপিং সুবিধা", "ব্যক্তিগতকরণ বিকল্প"],
+          isActive: true,
+          stock: 28,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: "cultural-pride-mug",
+          name: "Bengali Cultural Pride Mug",
+          nameBn: "বাঙালি সাংস্কৃতিক গর্ব মগ",
+          description: "Showcase your Bengali heritage with traditional designs and cultural motifs",
+          descriptionBn: "ঐতিহ্যবাহী ডিজাইন এবং সাংস্কৃতিক মোটিফ দিয়ে আপনার বাঙালি ঐতিহ্য প্রদর্শন করুন",
+          price: 580,
+          originalPrice: 680,
+          category: "mugs",
+          subcategory: "cultural",
+          image: "/api/placeholder/300/300", 
+          tags: ["bengali", "culture", "heritage", "traditional"],
+          features: ["Traditional Bengali art", "Cultural motifs", "Premium finish", "Heritage collection"],
+          featuresBn: ["ঐতিহ্যবাহী বাঙালি শিল্প", "সাংস্কৃতিক মোটিফ", "প্রিমিয়াম ফিনিশ", "ঐতিহ্য সংগ্রহ"],
+          isActive: true,
+          stock: 25,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      // Insert products into database
+      let insertedProducts = [];
+      for (const product of bengaliProducts) {
+        try {
+          const created = await storage.createProduct(product);
+          insertedProducts.push(created);
+        } catch (error) {
+          console.log(`Product ${product.id} might already exist, skipping...`);
+        }
+      }
+
+      console.log(`✅ Successfully populated ${insertedProducts.length} Bengali products`);
+      res.json({ 
+        message: `Successfully populated ${insertedProducts.length} Bengali products`,
+        products: insertedProducts.length
+      });
+    } catch (error) {
+      console.error("Error populating sample data:", error);
+      res.status(500).json({ message: "Failed to populate sample data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
