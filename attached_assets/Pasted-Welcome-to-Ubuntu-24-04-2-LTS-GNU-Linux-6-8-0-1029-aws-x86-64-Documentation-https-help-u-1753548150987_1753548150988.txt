@@ -1,0 +1,178 @@
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Sat Jul 26 16:24:54 UTC 2025
+
+  System load:  0.08              Temperature:           -273.1 C
+  Usage of /:   46.3% of 6.71GB   Processes:             117
+  Memory usage: 32%               Users logged in:       0
+  Swap usage:   0%                IPv4 address for ens5: 172.31.45.165
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+*** System restart required ***
+Last login: Sat Jul 26 15:33:05 2025 from 13.48.4.203
+ubuntu@ip-172-31-45-165:~$ # Install requirements
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs postgresql postgresql-contrib nginx
+
+# Get your code
+git clone https://github.com/azimeazdhan1231/trynex-lifestyle.git
+cd your-repo
+
+# Setup and run
+npm install
+npm run build
+npm run start
+2025-07-26 16:41:27 - Installing pre-requisites
+Hit:1 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble InRelease
+Get:2 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]                                       
+Hit:3 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease                                              
+Hit:4 https://deb.nodesource.com/node_18.x nodistro InRelease                                                                
+Get:5 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1282 kB]      
+Hit:6 http://security.ubuntu.com/ubuntu noble-security InRelease
+Get:7 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1113 kB]
+Fetched 2521 kB in 1s (4244 kB/s)                        
+Reading package lists... Done
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+curl is already the newest version (8.5.0-2ubuntu10.6).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+0 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Hit:1 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble InRelease
+Hit:2 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease                                                
+Hit:3 http://eu-north-1.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease                                              
+Get:4 https://deb.nodesource.com/node_20.x nodistro InRelease [12.1 kB]                                                      
+Hit:5 http://security.ubuntu.com/ubuntu noble-security InRelease                                       
+Get:6 https://deb.nodesource.com/node_20.x nodistro/main amd64 Packages [12.2 kB]
+Fetched 24.4 kB in 0s (50.9 kB/s)
+Reading package lists... Done
+2025-07-26 16:41:36 - Repository configured successfully.
+2025-07-26 16:41:36 - To install Node.js, run: apt-get install nodejs -y
+2025-07-26 16:41:36 - You can use N|solid Runtime as a node.js alternative
+2025-07-26 16:41:36 - To install N|solid Runtime, run: apt-get install nsolid -y 
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+postgresql is already the newest version (16+257build1.1).
+postgresql-contrib is already the newest version (16+257build1.1).
+nginx is already the newest version (1.24.0-2ubuntu7.4).
+The following packages will be upgraded:
+  nodejs
+1 upgraded, 0 newly installed, 0 to remove and 3 not upgraded.
+Need to get 32.0 MB of archives.
+After this operation, 11.7 MB of additional disk space will be used.
+Get:1 https://deb.nodesource.com/node_20.x nodistro/main amd64 nodejs amd64 20.19.4-1nodesource1 [32.0 MB]
+Fetched 32.0 MB in 0s (76.0 MB/s)
+(Reading database ... 109652 files and directories currently installed.)
+Preparing to unpack .../nodejs_20.19.4-1nodesource1_amd64.deb ...
+Detected old npm client, removing...
+Unpacking nodejs (20.19.4-1nodesource1) over (18.20.8-1nodesource1) ...
+Setting up nodejs (20.19.4-1nodesource1) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Scanning processes...                                                                                                                                                                                             
+Scanning candidates...                                                                                                                                                                                            
+Scanning linux images...                                                                                                                                                                                          
+
+Pending kernel upgrade!
+Running kernel version:
+  6.8.0-1029-aws
+Diagnostics:
+  The currently running kernel version is not the expected kernel version 6.14.0-1009-aws.
+
+Restarting the system to load the new kernel will not be handled automatically, so you should consider rebooting.
+
+Restarting services...
+
+Service restarts being deferred:
+ /etc/needrestart/restart.d/dbus.service
+ systemctl restart getty@tty1.service
+ systemctl restart networkd-dispatcher.service
+ systemctl restart serial-getty@ttyS0.service
+ systemctl restart systemd-logind.service
+ systemctl restart unattended-upgrades.service
+
+No containers need to be restarted.
+
+User sessions running outdated binaries:
+ ubuntu @ session #25: PM2 v6.0.8: God[20814]
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+fatal: destination path 'trynex-lifestyle' already exists and is not an empty directory.
+-bash: cd: your-repo: No such file or directory
+npm error code ENOENT
+npm error syscall open
+npm error path /home/ubuntu/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-07-26T16_41_45_590Z-debug-0.log
+npm error code ENOENT
+npm error syscall open
+npm error path /home/ubuntu/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-07-26T16_41_46_365Z-debug-0.log
+npm error code ENOENT
+npm error syscall open
+npm error path /home/ubuntu/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/ubuntu/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2025-07-26T16_41_46_502Z-debug-0.log
+ubuntu@ip-172-31-45-165:~$ server {
+    listen 80;
+    server_name _;
+    location / {
+        root /home/ubuntu/your-repo/dist/public;
+        try_files $uri $uri/ /index.html;
+    }
+    location /api/ {
+        proxy_pass http://localhost:5000;
+    }
+}
+Command 'server' not found, did you mean:
+  command 'serveo' from snap serveo (0.0.10)
+  command 'serve' from snap serve (0.3.0)
+  command 'kserver' from deb freewnn-kserver (1.1.1~a021+cvs20130302-7build1)
+  command 'semver' from deb node-semver (7.5.4+~7.5.0-2)
+  command 'cserver' from deb freewnn-cserver (1.1.1~a021+cvs20130302-7build1)
+  command 'jserver' from deb freewnn-jserver (1.1.1~a021+cvs20130302-7build1)
+See 'snap info <snapname>' for additional versions.
+Command 'listen' not found, but can be installed with:
+sudo apt install ruby-listen
+server_name: command not found
+Command 'location' not found, but can be installed with:
+sudo apt install location
+Command 'root' not found, but can be installed with:
+sudo snap install root-framework
+try_files: command not found
+-bash: syntax error near unexpected token `}'
+Command 'location' not found, but can be installed with:
+sudo apt install location
+proxy_pass: command not found
+-bash: syntax error near unexpected token `}'
+-bash: syntax error near unexpected token `}'
+ubuntu@ip-172-31-45-165:~$ 
